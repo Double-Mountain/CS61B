@@ -78,7 +78,8 @@ public class LinkedListDeque<T> implements Iterable<T> {
    }
 
    /**
-    * Prints the items in the deque from first to last, separated by a space. Once all the items have been printed, print out a new line.
+    * Prints the items in the deque from first to last, separated by a space. 
+    * Once all the items have been printed, print out a new line.
     */
    public void printDeque() {
       Node current = sentinel;
@@ -125,7 +126,8 @@ public class LinkedListDeque<T> implements Iterable<T> {
    }
 
    /**
-    * Gets the item at the given index, where 0 is the front, 1 is the next item, and so forth. If no such item exists, returns null. Must not alter the deque!
+    * Gets the item at the given index, where 0 is the front, 1 is the next item, and so forth. 
+    * If no such item exists, returns null. Must not alter the deque!
     * @param index the index of the item.
     * @return the item at the given index, null if it doesn't exist;
     */
@@ -165,7 +167,8 @@ public class LinkedListDeque<T> implements Iterable<T> {
    }
 
    /**
-    * Gets the item at the given index, where 0 is the front, 1 is the next item, and so forth. If no such item exists, returns null. Must not alter the deque!
+    * Gets the item at the given index, where 0 is the front, 1 is the next item, and so forth. 
+    * If no such item exists, returns null. Must not alter the deque!
     * @param index the index of the item.
     * @return the item at the given index, null if it doesn't exist;
     */
