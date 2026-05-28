@@ -28,7 +28,7 @@ public class ArrayDeque<T> implements Iterable<T> {
    private void resize(int _size) {
       T[] newItems = (T[]) new Object[_size];
       for (int i = 0; i < size; i++) {
-         newItems[i] = items[(first + i) % size];
+         newItems[i] = items[(first + i) % items.length];
       }
       first = 0;
       items = newItems;
@@ -117,7 +117,10 @@ public class ArrayDeque<T> implements Iterable<T> {
       }
       T _item = items[(first + size + items.length- 1) % items.length];
       items[(first + size + items.length - 1) % items.length] = null;
-      size--;
+      size--; 
+      if (size < 0.25 * items.length && items.length > MIN_LENGTH) {
+         resize(items.length / 2);
+      }
       return _item;
    }
 
