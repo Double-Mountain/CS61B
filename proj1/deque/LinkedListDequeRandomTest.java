@@ -11,17 +11,17 @@ public class LinkedListDequeRandomTest {
     // YOUR TESTS HERE
     @Test
     public void testThreeAddThreeRemove() {
-      AListNoResizing<Integer> a = new AListNoResizing<>();
-      LinkedListDeque<Integer> b = new LinkedListDeque<>();
-      a.addLast(4);
-      a.addLast(5);
-      a.addLast(6);
-      b.addLast(4);
-      b.addLast(5);
-      b.addLast(6);
-      assertEquals(a.removeLast(), b.removeLast());
-      assertEquals(a.removeLast(), b.removeLast());
-      assertEquals(a.removeLast(), b.removeLast());
+        AListNoResizing<Integer> a = new AListNoResizing<>();
+        LinkedListDeque<Integer> b = new LinkedListDeque<>();
+        a.addLast(4);
+        a.addLast(5);
+        a.addLast(6);
+        b.addLast(4);
+        b.addLast(5);
+        b.addLast(6);
+        assertEquals(a.removeLast(), b.removeLast());
+        assertEquals(a.removeLast(), b.removeLast());
+        assertEquals(a.removeLast(), b.removeLast());
     }
     @Test
     public void randomizedTest() {
@@ -44,20 +44,20 @@ public class LinkedListDequeRandomTest {
                 int last = 0;
                 int blast = 0;
                 if (correct.size() > 0) {
-                  last = correct.getLast();
+                    last = correct.getLast();
                 }
                 if (broken.size() > 0) {
-                  blast = broken.get(broken.size() - 1);
+                    blast = broken.get(broken.size() - 1);
                 }
                 assertEquals(last, blast);
             } else if (operationNumber == 3) {
                 int last = 0;
                 int blast = 0;
                 if (correct.size() > 0) {
-                  last = correct.removeLast();
+                    last = correct.removeLast();
                 }
                 if (broken.size() > 0) {
-                  blast = broken.removeLast();
+                    blast = broken.removeLast();
                 }
                 assertEquals(last, blast);
             }
