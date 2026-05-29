@@ -131,7 +131,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     */
    @Override
    public T get(int index) {
-      if (size > index + 1) {
+      if (size < index + 1) {
          return null;
       }
       Node current = sentinel.next;
