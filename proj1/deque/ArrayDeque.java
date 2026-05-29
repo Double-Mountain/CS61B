@@ -152,7 +152,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         }
         int current = 0;
         for (T i : (Iterable<T>) a) {
-            if (i != get(current)) {
+            if (!i.equals(get(current))) {
                 return false;
             }
             current++;

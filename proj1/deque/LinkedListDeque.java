@@ -31,8 +31,8 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     private Node sentinel;
 
     public LinkedListDeque() {
-      sentinel = new Node(null);
-      sentinel.prev = sentinel.next = sentinel;
+        sentinel = new Node(null);
+        sentinel.prev = sentinel.next = sentinel;
     }
 
     /** 
@@ -157,7 +157,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         }
         Node current = sentinel.next;
         for (T i : (Iterable<T>) d) {
-            if (i != current.item) {
+            if (!i.equals(current.item)) {
                 return false;
             }
             current = current.next;

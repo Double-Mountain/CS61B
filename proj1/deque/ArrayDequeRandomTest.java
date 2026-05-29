@@ -25,10 +25,10 @@ public class ArrayDequeRandomTest {
     }
     @Test
     public void randomizedTest() {
-      AListNoResizing<Integer> correct = new AListNoResizing<>();
-      ArrayDeque<Integer> broken = new ArrayDeque<>();
-      int N = 5000;
-      for (int i = 0; i < N; i += 1) {
+        AListNoResizing<Integer> correct = new AListNoResizing<>();
+        ArrayDeque<Integer> broken = new ArrayDeque<>();
+        int N = 5000;
+        for (int i = 0; i < N; i += 1) {
             int operationNumber = StdRandom.uniform(0, 4);
             if (operationNumber == 0) {
                 // addLast
@@ -44,20 +44,20 @@ public class ArrayDequeRandomTest {
                 int last = 0;
                 int blast = 0;
                 if (correct.size() > 0) {
-                  last = correct.getLast();
+                    last = correct.getLast();
                 }
                 if (broken.size() > 0) {
-                  blast = broken.get(broken.size() - 1);
+                    blast = broken.get(broken.size() - 1);
                 }
                 assertEquals(last, blast);
             } else if (operationNumber == 3) {
                 int last = 0;
                 int blast = 0;
                 if (correct.size() > 0) {
-                  last = correct.removeLast();
+                    last = correct.removeLast();
                 }
                 if (broken.size() > 0) {
-                  blast = broken.removeLast();
+                    blast = broken.removeLast();
                 }
                 assertEquals(last, blast);
             }
