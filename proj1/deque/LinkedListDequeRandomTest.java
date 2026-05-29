@@ -11,8 +11,7 @@ import static org.junit.Assert.*;
 public class LinkedListDequeRandomTest {
   // YOUR TESTS HERE
   @Test
-  public void testThreeAddThreeRemove()
-  {
+  public void testThreeAddThreeRemove() {
     AListNoResizing<Integer> a = new AListNoResizing<>();
     LinkedListDeque<Integer> b = new LinkedListDeque<>();
     a.addLast(4);
@@ -26,8 +25,7 @@ public class LinkedListDequeRandomTest {
     assertEquals(a.removeLast(), b.removeLast());
   }
   @Test
-  public void randomizedTest()
-  {
+  public void randomizedTest() {
     AListNoResizing<Integer> correct = new AListNoResizing<>();
     LinkedListDeque<Integer> broken = new LinkedListDeque<>();
     int N = 5000;
@@ -46,24 +44,20 @@ public class LinkedListDequeRandomTest {
         } else if (operationNumber == 2) {
             int last = 0;
             int blast = 0;
-            if (correct.size() > 0) 
-            {
+            if (correct.size() > 0) {
               last = correct.getLast();
             }
-            if (broken.size() > 0) 
-            {
+            if (broken.size() > 0) {
               blast = broken.get(broken.size() - 1);
             }
             assertEquals(last, blast);
         } else if (operationNumber == 3) {
             int last = 0;
             int blast = 0;
-            if (correct.size() > 0) 
-            {
+            if (correct.size() > 0) {
               last = correct.removeLast();
             }
-            if (broken.size() > 0) 
-            {
+            if (broken.size() > 0) {
               blast = broken.removeLast();
             }
             assertEquals(last, blast);
