@@ -76,7 +76,7 @@ That's what mine looks like. Go back to lab1 if you are still having issues"""
 JAVA_COMMAND = "java"
 CAPERS_COMMAND = "capers.Main"
 JAVAC_COMMAND = "javac -d ."
-JVM_COMMAND = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005"
+JVM_COMMAND = "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
 TIMEOUT = 10
 DEBUG = False
 DEBUG_MSG = \
