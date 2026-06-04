@@ -3,6 +3,14 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "capers.Main",
+            "projectName": "lab6",
+            "args": ["story", "DebugTest"]
+        },
+        {
+            "type": "java",
             "name": "Debug Attached to Remote JVM",
             "request": "attach",
             "hostName": "localhost",
