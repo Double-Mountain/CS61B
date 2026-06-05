@@ -394,3 +394,4 @@ tramp
 disc.java
 !migrate_java.sh
 !restore_java.sh
+!link_java.sh
