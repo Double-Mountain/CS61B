@@ -33,17 +33,12 @@ fi
 if [ -f "$POM_FILE" ]; then
     echo "发现 pom.xml，正在检查并移除冗余的 sourceDirectory 配置..."
     
-    # 备份原文件（带时间戳）
-    BACKUP_FILE="$POM_FILE.bak.$(date +%Y%m%d_%H%M%S)"
-    cp "$POM_FILE" "$BACKUP_FILE"
-    
     # 使用 sed 删除包含这两行的内容（忽略空白字符）
     sed -i -E -e '/<sourceDirectory>[[:space:]]*\$\{project\.basedir\}[[:space:]]*<\/sourceDirectory>/d' \
               -e '/<testSourceDirectory>[[:space:]]*\$\{project\.basedir\}[[:space:]]*<\/testSourceDirectory>/d' \
               "$POM_FILE"
     
     echo "已删除冗余的 sourceDirectory 配置行"
-    echo "备份文件保存在: $BACKUP_FILE"
 else
     echo "未发现 pom.xml，跳过 Maven 配置检查"
 fi
