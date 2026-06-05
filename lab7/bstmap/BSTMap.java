@@ -240,7 +240,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         return new KeySet();
     }
 
-    Node removeLeftest(Node current, Node parent, boolean isRight) {
+    private Node removeLeftest(Node current, Node parent, boolean isRight) {
         if (current == null || parent == null) return null;
         if (current.left != null) return removeLeftest(current.left, current, false);
         removeHelper(current.key, null, current, parent, isRight, false);
