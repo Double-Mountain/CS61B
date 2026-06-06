@@ -274,7 +274,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         }
     }
 
-    public V removeHelper(K key, V value, boolean matters) {
+    private V removeHelper(K key, V value, boolean matters) {
         Node node = getHelper(key);
         if (node != null && (!matters || node.value.equals(value))) {
             V ret = node.value;
