@@ -1,0 +1,24 @@
+Enter # strings to insert into each map: 99999
+class hashmap.MyHashMapALBuckets: 0.10 sec
+class hashmap.MyHashMapLLBuckets: 0.06 sec
+class hashmap.MyHashMapTSBuckets: 0.13 sec
+class hashmap.MyHashMapHSBuckets: 0.19 sec
+class hashmap.MyHashMapPQBuckets: 0.09 sec
+
+Enter # strings to insert into hashmap.ULLMap: 9999
+class hashmap.ULLMap: 0.39 sec
+
+Enter # strings to insert into hashmap.MyHashMap: 9999
+class hashmap.MyHashMap: 0.00 sec
+
+Enter # strings to insert into Java's HashMap: 9999
+Java's Built-in HashMap: 0.00 sec
+
+Enter # strings to insert into hashmap.ULLMap: 9999
+class hashmap.ULLMap: 0.34 sec
+
+Enter # strings to insert into your hashmap.MyHashMap: 9999
+class hashmap.MyHashMap: 0.00 sec
+
+Enter # strings to insert into Java's HashMap: 9999
+Java's Built-in HashMap: 0.01 sec

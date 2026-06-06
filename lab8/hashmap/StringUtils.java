@@ -1,4 +1,4 @@
-package speed;
+package hashmap;
 
 import java.util.regex.Pattern;
 import java.util.Random;
