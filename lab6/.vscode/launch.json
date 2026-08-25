@@ -14,8 +14,12 @@
             "name": "Debug Attached to Remote JVM",
             "request": "attach",
             "hostName": "localhost",
-            "port": 5005,
-            "projectName": "capers"
+            "port": 5006,
+            "projectName": "lab6",
+            "sourcePaths": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/capers"
+            ]
         }
     ]
 }
