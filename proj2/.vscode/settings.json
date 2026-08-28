@@ -1,0 +1,18 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.import.maven.enabled": false,
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-17",
+            "path": "/usr/lib/jvm/java-17-openjdk-amd64",
+            "default": true
+        }
+    ],
+    "java.project.sourcePaths": [
+        ".",
+        "tests"
+    ],
+    "java.project.referencedLibraries": [
+        "/home/double_mountain/gits/cs61b/library-sp21/javalib/**/*.jar"
+    ]
+}

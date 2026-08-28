@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "gitlet.Main"
+        },
+        {
+            "type": "java",
+            "name": "Debug Attached to Remote JVM",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5006,
+            "sourcePaths": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/gitlet"
+            ]
+        }
+    ]
+}
