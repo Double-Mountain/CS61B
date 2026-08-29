@@ -1,7 +1,7 @@
 package gitlet;
 
 // any imports you need here
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 import java.io.Serializable;
 import java.util.Date; // You'll likely use this in this class
@@ -26,7 +26,7 @@ public class Commit implements Serializable {
 
     /* fill in the rest of this class. */
     private Date timestamp;
-    private Map<String, String> tree = new HashMap<>();
+    private Map<String, String> tree = new TreeMap<>();
     private String parent = null;
     private String secondParent = null;
     
