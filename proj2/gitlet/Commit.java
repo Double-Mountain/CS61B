@@ -62,4 +62,33 @@ public class Commit implements Serializable {
     public String getBlob(String name) {
         return tree.get(name);
     }
+
+    /**
+     * Set the metadata of the commit
+     * @param message the message of the commit
+     * @param timestamp the time stamp of the commit
+     */
+    public void setMetadata(String message, Date timestamp) {
+        this.message = message;
+        this.timestamp = timestamp;
+    }
+
+    /**
+     * Set the parents of the commit
+     * @param parent1 the SHA-1 of the main parent of the commit
+     * @param parent2 the SHA-1 of the second parent of the commit
+     */
+    public void setParents(String parent1, String parent2) {
+        parent = parent1;
+        secondParent = parent2;
+    }
+
+    /**
+     * Track a certain blob with a certain name
+     * @param name the name of the file
+     * @param blob the SHA-1 of the blob to be tracked
+     */
+    public void trackBlob(String name, String blob) {
+        tree.put(name, blob);
+    }
 }

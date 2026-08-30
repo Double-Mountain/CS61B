@@ -4,9 +4,8 @@ import java.io.File;
 import static gitlet.Utils.*;
 
 // any imports you need here
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Date;
+import java.util.List;
 
 /** Represents a gitlet repository.
  *  It's a good idea to give a description here of what else this Class
@@ -49,7 +48,7 @@ public class Repository {
         STAGING.mkdir();
         BRANCHES.mkdir();
         String first = createCommitFile(new Commit("initial commit", new Date(0), null));
-        pointBranch("master", first);
+        setBranch("master", first);
         moveHead("master");
     }
 
@@ -82,11 +81,11 @@ public class Repository {
     }
 
     /**
-     * Point a certain branch to a commit. Create the branch if it does not exist.
+     * Make a certain branch point to a commit. Create the branch if it does not exist.
      * @param branch the name of the branch
      * @param commit the SHA-1 of the commit
      */
-    private static void pointBranch(String branch, String commit) {
+    private static void setBranch(String branch, String commit) {
         writeContents(join(BRANCHES, branch), commit);
     }
 
@@ -129,6 +128,36 @@ public class Repository {
      * @return whether the file was deleted
      */
     private static boolean deleteStaging(String name) {
-        return restrictedDelete(join(STAGING, name));
+        return join(STAGING, name).delete();
+    }
+
+    /**
+     * Commit the staging files.
+     * @param message the commit message
+     */
+    public static void commit(String message) {
+        if (message.isBlank()) {
+            System.err.println("Please enter a commit message.");
+            System.exit(0);
+        }
+        List<String> stagedFiles = plainFilenamesIn(STAGING);
+        if (stagedFiles.isEmpty()) {
+            System.err.println("No changes added to the commit.");
+            System.exit(0);
+        }
+        String branch = getHead();
+        Commit commit = readObject(join(COMMITS, getBranch(branch)), Commit.class);
+        commit.setMetadata(message, new Date());
+        commit.setParents(getBranch(branch), null);
+        for (String name : stagedFiles) {
+            File src = join(STAGING, name);
+            byte[] contents = readContents(src);
+            String blob = sha1(contents);
+            writeContents(join(BLOBS, blob), contents);
+            commit.trackBlob(name, blob);
+            deleteStaging(name);
+        }
+        String name = createCommitFile(commit);
+        setBranch(branch, name);
     }
 }

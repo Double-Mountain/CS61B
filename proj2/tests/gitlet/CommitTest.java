@@ -51,6 +51,36 @@ public class CommitTest {
         assertEquals("abc123", commit.getBlob("wug.txt"));
     }
 
+    @Test
+    public void testSetMetadata() throws Exception {
+        Commit commit = new Commit("old", new Date(0), null);
+        Date time = new Date(5000L);
+
+        commit.setMetadata("new message", time);
+
+        assertEquals("new message", field(commit, "message"));
+        assertEquals(time, field(commit, "timestamp"));
+    }
+
+    @Test
+    public void testSetParents() throws Exception {
+        Commit commit = new Commit("message", new Date(0), "old-parent");
+
+        commit.setParents("parent1", "parent2");
+
+        assertEquals("parent1", field(commit, "parent"));
+        assertEquals("parent2", field(commit, "secondParent"));
+    }
+
+    @Test
+    public void testTrackBlob() {
+        Commit commit = new Commit("message", new Date(0), null);
+
+        commit.trackBlob("wug.txt", "abc123");
+
+        assertEquals("abc123", commit.getBlob("wug.txt"));
+    }
+
     /** Returns the value of the private field named NAME on OBJ. */
     private static Object field(Object obj, String name) throws Exception {
         Field f = obj.getClass().getDeclaredField(name);

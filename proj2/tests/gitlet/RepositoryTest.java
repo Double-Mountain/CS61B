@@ -5,6 +5,7 @@ import org.junit.Before;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.Date;
 
 /** Unit tests for Repository.init() and the helpers it exercises. */
@@ -85,6 +86,37 @@ public class RepositoryTest {
 
         File staged = Utils.join(Repository.STAGING, "wug.txt");
         assertEquals("version 2", Utils.readContentsAsString(staged));
+    }
+
+    @Test
+    public void testCommitCreatesCommitAndClearsStaging() throws Exception {
+        Repository.init();
+        String initial = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
+        Repository.add("wug.txt");
+        Repository.commit("first commit");
+
+        String blob = Utils.sha1("hello");
+        assertTrue(Utils.join(Repository.BLOBS, blob).isFile());
+        assertTrue(Utils.plainFilenamesIn(Repository.STAGING).isEmpty());
+
+        String newCommitId = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        assertFalse(initial.equals(newCommitId));
+
+        Commit commit = Utils.readObject(
+                Utils.join(Repository.COMMITS, newCommitId), Commit.class);
+        assertEquals("first commit", field(commit, "message"));
+        assertEquals(initial, field(commit, "parent"));
+        assertEquals(blob, commit.getBlob("wug.txt"));
+    }
+
+    private static Object field(Object obj, String name) throws Exception {
+        Field f = obj.getClass().getDeclaredField(name);
+        f.setAccessible(true);
+        return f.get(obj);
     }
 
     private static void deleteRecursively(File file) {
