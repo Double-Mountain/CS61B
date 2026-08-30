@@ -52,19 +52,6 @@ public class RepositoryTest {
         assertEquals(expected, branches.get("HEAD"));
     }
 
-    @Test
-    public void testInitTwiceThrows() {
-        Repository.init();
-
-        try {
-            Repository.init();
-            fail("Expected GitletException");
-        } catch (GitletException excp) {
-            assertEquals("A Gitlet version-control system already exists in the current directory.",
-                    excp.getMessage());
-        }
-    }
-
     private static void deleteRecursively(File file) {
         if (!file.exists()) {
             return;

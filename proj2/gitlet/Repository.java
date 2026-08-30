@@ -40,11 +40,13 @@ public class Repository {
      */
     public static void init() {
         if (GITLET_DIR.exists()) {
-            throw new GitletException("A Gitlet version-control system already exists in the current directory.");
+            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.exit(0);
         }
         GITLET_DIR.mkdir();
         COMMITS.mkdir();
         BLOBS.mkdir();
+        
         branches = new HashMap<String, String>();
         String first = createCommitFile(new Commit("initial commit", new Date(0), null));
         branches.put("master", first);
@@ -84,5 +86,9 @@ public class Repository {
      */
     private static void loadBranches() {
         branches = readObject(BRANCHES, HashMap.class);
+    }
+
+    public static void add() {
+
     }
 }
