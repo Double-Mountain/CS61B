@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.HashSet;
 
 /** Unit tests for Repository.init() and the helpers it exercises. */
 public class RepositoryTest {
@@ -112,6 +113,70 @@ public class RepositoryTest {
         assertEquals("first commit", field(commit, "message"));
         assertEquals(initial, field(commit, "parent"));
         assertEquals(blob, commit.getBlob("wug.txt"));
+    }
+
+    @Test
+    public void testRmUnstagesStagedFile() {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "hello");
+        Repository.add("wug.txt");
+        assertTrue(Utils.join(Repository.STAGING, "wug.txt").isFile());
+
+        Repository.rm("wug.txt");
+
+        assertTrue(wug.isFile());
+        assertFalse(Utils.join(Repository.STAGING, "wug.txt").exists());
+        assertTrue(loadRemoval().isEmpty());
+    }
+
+    @Test
+    public void testRmTrackedFileStagesRemovalAndDeletesWorkingFile() {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
+        Repository.add("wug.txt");
+        Repository.commit("added wug");
+
+        Repository.rm("wug.txt");
+
+        assertFalse(Utils.join(Repository.CWD, "wug.txt").exists());
+        assertTrue(loadRemoval().contains("wug.txt"));
+    }
+
+    @Test
+    public void testAddCancelsRemoval() {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
+        Repository.add("wug.txt");
+        Repository.commit("added wug");
+        Repository.rm("wug.txt");
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "new content");
+        Repository.add("wug.txt");
+
+        assertFalse(loadRemoval().contains("wug.txt"));
+        assertTrue(Utils.join(Repository.STAGING, "wug.txt").isFile());
+    }
+
+    @Test
+    public void testCommitUntracksRemovedFile() throws Exception {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
+        Repository.add("wug.txt");
+        Repository.commit("added wug");
+        Repository.rm("wug.txt");
+        Repository.commit("removed wug");
+
+        String newCommitId = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        Commit commit = Utils.readObject(
+                Utils.join(Repository.COMMITS, newCommitId), Commit.class);
+        assertNull(commit.getBlob("wug.txt"));
+        assertTrue(loadRemoval().isEmpty());
+    }
+
+    private static HashSet<String> loadRemoval() {
+        return Utils.readObject(Repository.REMOVAL, HashSet.class);
     }
 
     private static Object field(Object obj, String name) throws Exception {

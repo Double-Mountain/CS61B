@@ -216,7 +216,8 @@ public class Repository {
             System.exit(0);
         }
         List<String> stagedFiles = getStagedFileList();
-        if (stagedFiles.isEmpty()) {
+        HashSet<String> removal = loadRemoval();
+        if (stagedFiles.isEmpty() && removal.isEmpty()) {
             System.err.println("No changes added to the commit.");
             System.exit(0);
         }
@@ -229,10 +230,10 @@ public class Repository {
             commit.trackBlob(name, blob);
             unstage(name);
         }
-        HashSet<String> removal = loadRemoval();
         for (String name : removal) {
             commit.untrackBlob(name);
         }
+        saveRemoval(new HashSet<String>());
         String name = saveCommit(commit);
         setBranch(branch, name);
     }
@@ -247,6 +248,12 @@ public class Repository {
         boolean flag = removal.remove(name);
         saveRemoval(removal);
         return flag;
+    }
+
+    private static void addToRemoval(String name) {
+        HashSet<String> removal = loadRemoval();
+        removal.add(name);
+        saveRemoval(removal);
     }
 
     /**
@@ -271,5 +278,15 @@ public class Repository {
      * @param name the file name
      */
     public static void rm(String name) {
+        boolean staged = unstage(name);
+        boolean tracked = loadHeadCommit().getBlob(name) != null;
+        if (!staged && !tracked) {
+            System.err.println("No reason to remove the file.");
+            System.exit(0);
+        }
+        if (tracked) {
+            restrictedDelete(join(CWD, name));
+            addToRemoval(name);
+        }
     }
 }

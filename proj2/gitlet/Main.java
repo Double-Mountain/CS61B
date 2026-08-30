@@ -51,7 +51,7 @@ public class Main {
                 }
                 Repository.commit(args[1]);
                 break;
-            /*case "rm":
+            case "rm":
                 // handel the 'rm [file name]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
@@ -62,7 +62,7 @@ public class Main {
                     System.exit(0);
                 }
                 Repository.rm(args[1]);
-                break;*/
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }
