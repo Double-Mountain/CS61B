@@ -6,7 +6,6 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.Date;
-import java.util.HashMap;
 
 /** Unit tests for Repository.init() and the helpers it exercises. */
 public class RepositoryTest {
@@ -23,7 +22,9 @@ public class RepositoryTest {
         assertTrue(Repository.GITLET_DIR.isDirectory());
         assertTrue(Repository.COMMITS.isDirectory());
         assertTrue(Repository.BLOBS.isDirectory());
-        assertTrue(Repository.BRANCHES.isFile());
+        assertTrue(Repository.STAGING.isDirectory());
+        assertTrue(Repository.BRANCHES.isDirectory());
+        assertTrue(Repository.HEAD.isFile());
     }
 
     @Test
@@ -40,16 +41,22 @@ public class RepositoryTest {
     }
 
     @Test
-    public void testInitSetsMasterAndHead() {
+    public void testInitPointsMasterAtInitialCommit() {
         Repository.init();
 
         String expected = Utils.sha1(
                 Utils.serialize(new Commit("initial commit", new Date(0), null)));
-        HashMap<String, String> branches =
-                Utils.readObject(Repository.BRANCHES, HashMap.class);
+        File master = Utils.join(Repository.BRANCHES, "master");
 
-        assertEquals(expected, branches.get("master"));
-        assertEquals(expected, branches.get("HEAD"));
+        assertTrue(master.isFile());
+        assertEquals(expected, Utils.readContentsAsString(master));
+    }
+
+    @Test
+    public void testInitMovesHeadToMaster() {
+        Repository.init();
+
+        assertEquals("master", Utils.readContentsAsString(Repository.HEAD));
     }
 
     private static void deleteRecursively(File file) {

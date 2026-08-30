@@ -13,7 +13,7 @@ public class Main {
     public static void main(String[] args) {
         // what if args is empty?
         if (args.length == 0) {
-            System.out.println("Please enter a command.");
+            System.err.println("Please enter a command.");
             System.exit(0);
         }
         String firstArg = args[0];
@@ -21,7 +21,7 @@ public class Main {
             case "init":
                 // handle the `init` command
                 if (args.length != 1) {
-                    System.out.println(OPERANDS);
+                    System.err.println(OPERANDS);
                     System.exit(0);
                 }
                 Repository.init();
@@ -29,18 +29,18 @@ public class Main {
             case "add":
                 // handle the `add [filename]` command
                 if (args.length != 2) {
-                    System.out.println(OPERANDS);
+                    System.err.println(OPERANDS);
                     System.exit(0);
                 }
                 if (!Repository.GITLET_DIR.exists()) {
-                    System.out.println(NO_DIRECTORY);
+                    System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
-                Repository.add();
+                Repository.add(args[1]);
                 break;
             // FILL THE REST IN
             default:
-                System.out.println("No command with that name exists.");
+                System.err.println("No command with that name exists.");
                 System.exit(0);
         }
     }

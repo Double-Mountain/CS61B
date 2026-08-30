@@ -30,28 +30,27 @@ public class Repository {
     public static final File BRANCHES = join(GITLET_DIR, "branches");
     public static final File COMMITS = join(GITLET_DIR, "commits");
     public static final File BLOBS = join(GITLET_DIR, "blobs");
+    public static final File STAGING = join(GITLET_DIR, "staging");
+    public static final File HEAD = join(GITLET_DIR, "head");
 
     /* fill in the rest of this class. */
-    private static HashMap<String, String> branches;
-
 
     /**
      * Initiate the gitlet repository
      */
     public static void init() {
         if (GITLET_DIR.exists()) {
-            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.err.println("A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
         }
         GITLET_DIR.mkdir();
         COMMITS.mkdir();
         BLOBS.mkdir();
-        
-        branches = new HashMap<String, String>();
+        STAGING.mkdir();
+        BRANCHES.mkdir();
         String first = createCommitFile(new Commit("initial commit", new Date(0), null));
-        branches.put("master", first);
+        pointBranch("master", first);
         moveHead("master");
-        saveBranches();
     }
 
     /**
@@ -71,24 +70,23 @@ public class Repository {
      * @param branch the branch that the head pointer move to
      */
     private static void moveHead(String branch) {
-        branches.put("HEAD", branches.get(branch));
+        writeContents(HEAD, branch);
     }
 
     /**
-     * Save the state of branches
+     * Point a certain branch to a commit
+     * @param branch the name of the branch
+     * @param commit the SHA-1 of the commit
      */
-    private static void saveBranches() {
-        writeObject(BRANCHES, branches);
+    private static void pointBranch(String branch, String commit) {
+        writeContents(join(BRANCHES, branch), commit);
     }
 
-    /**
-     * Load the state of branches
-     */
-    private static void loadBranches() {
-        branches = readObject(BRANCHES, HashMap.class);
-    }
-
-    public static void add() {
-
+    public static void add(String name) {
+        //File file = join(CWD, name);
+        //if (!file.exists()) {
+        //    System.err.println("File does not exist.");
+        //    
+        //}
     }
 }
