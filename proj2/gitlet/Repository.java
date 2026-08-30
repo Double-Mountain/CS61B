@@ -74,7 +74,15 @@ public class Repository {
     }
 
     /**
-     * Point a certain branch to a commit
+     * Return the branch name that the head pointer points to
+     * @return the branch name
+     */
+    private static String getHead() {
+        return readContentsAsString(HEAD);
+    }
+
+    /**
+     * Point a certain branch to a commit. Create the branch if it does not exist.
      * @param branch the name of the branch
      * @param commit the SHA-1 of the commit
      */
@@ -82,11 +90,45 @@ public class Repository {
         writeContents(join(BRANCHES, branch), commit);
     }
 
+    /**
+     * Return the commit that a certain branch points to
+     * @param branch the name of the branch
+     * @return the SHA-1 of the commit
+     */
+    private static String getBranch(String branch) {
+        File file = join(BRANCHES, branch);
+        if (!file.exists()) {
+            return null;
+        }
+        return readContentsAsString(file);
+    }
+
+    /**
+     * Add a certain file to the staging area
+     * Delete it from the staging area if it exists there and is identical to the current commit
+     * @param name the name of the file
+     */
     public static void add(String name) {
-        //File file = join(CWD, name);
-        //if (!file.exists()) {
-        //    System.err.println("File does not exist.");
-        //    
-        //}
+        File file = join(CWD, name);
+        if (!file.exists()) {
+            System.err.println("File does not exist.");
+            System.exit(0);
+        }
+        if (sha1(readContents(file)).equals(
+            readObject(join(COMMITS, getBranch(getHead())), Commit.class).getBlob(name))) {
+            deleteStaging(name);
+        }
+        else {
+            writeContents(join(STAGING, name), readContents(file));
+        }
+    }
+
+    /**
+     * Delete a file with a certain name if it exists
+     * @param name the name of the file
+     * @return whether the file was deleted
+     */
+    private static boolean deleteStaging(String name) {
+        return restrictedDelete(join(STAGING, name));
     }
 }

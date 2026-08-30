@@ -53,4 +53,13 @@ public class Commit implements Serializable {
         this(message, timestamp, parent);
         this.secondParent = secondParent;
     }
+    
+    /**
+     * Return the blob that a file name refers to, null if it does not exist.
+     * @param name the file name
+     * @return the SHA-1 of the blob
+     */
+    public String getBlob(String name) {
+        return tree.get(name);
+    }
 }

@@ -36,6 +36,21 @@ public class CommitTest {
         assertEquals("parent2", field(commit, "secondParent"));
     }
 
+    @Test
+    public void testGetBlobReturnsNullWhenMissing() {
+        Commit commit = new Commit("message", new Date(0), null);
+        assertNull(commit.getBlob("wug.txt"));
+    }
+
+    @Test
+    public void testGetBlobReturnsMappedBlob() throws Exception {
+        Commit commit = new Commit("message", new Date(0), null);
+        Map<String, String> tree = (Map<String, String>) field(commit, "tree");
+        tree.put("wug.txt", "abc123");
+
+        assertEquals("abc123", commit.getBlob("wug.txt"));
+    }
+
     /** Returns the value of the private field named NAME on OBJ. */
     private static Object field(Object obj, String name) throws Exception {
         Field f = obj.getClass().getDeclaredField(name);

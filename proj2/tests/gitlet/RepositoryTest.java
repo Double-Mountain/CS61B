@@ -13,6 +13,8 @@ public class RepositoryTest {
     @Before
     public void cleanUp() {
         deleteRecursively(Repository.GITLET_DIR);
+        deleteRecursively(Utils.join(Repository.CWD, "wug.txt"));
+        deleteRecursively(Utils.join(Repository.CWD, "notwug.txt"));
     }
 
     @Test
@@ -57,6 +59,32 @@ public class RepositoryTest {
         Repository.init();
 
         assertEquals("master", Utils.readContentsAsString(Repository.HEAD));
+    }
+
+    @Test
+    public void testAddStagesFile() {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
+
+        Repository.add("wug.txt");
+
+        File staged = Utils.join(Repository.STAGING, "wug.txt");
+        assertTrue(staged.isFile());
+        assertEquals("hello", Utils.readContentsAsString(staged));
+    }
+
+    @Test
+    public void testAddStagesNewestContent() {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "version 1");
+        Repository.add("wug.txt");
+
+        Utils.writeContents(wug, "version 2");
+        Repository.add("wug.txt");
+
+        File staged = Utils.join(Repository.STAGING, "wug.txt");
+        assertEquals("version 2", Utils.readContentsAsString(staged));
     }
 
     private static void deleteRecursively(File file) {
