@@ -28,6 +28,7 @@ public class RepositoryTest {
         assertTrue(Repository.STAGING.isDirectory());
         assertTrue(Repository.BRANCHES.isDirectory());
         assertTrue(Repository.HEAD.isFile());
+        assertTrue(Repository.REMOVAL.isFile());
     }
 
     @Test

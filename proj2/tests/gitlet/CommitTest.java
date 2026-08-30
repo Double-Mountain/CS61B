@@ -81,6 +81,22 @@ public class CommitTest {
         assertEquals("abc123", commit.getBlob("wug.txt"));
     }
 
+    @Test
+    public void testUntrackBlobReturnsRemovedBlob() {
+        Commit commit = new Commit("message", new Date(0), null);
+        commit.trackBlob("wug.txt", "abc123");
+
+        assertEquals("abc123", commit.untrackBlob("wug.txt"));
+        assertNull(commit.getBlob("wug.txt"));
+    }
+
+    @Test
+    public void testUntrackBlobReturnsNullWhenMissing() {
+        Commit commit = new Commit("message", new Date(0), null);
+
+        assertNull(commit.untrackBlob("wug.txt"));
+    }
+
     /** Returns the value of the private field named NAME on OBJ. */
     private static Object field(Object obj, String name) throws Exception {
         Field f = obj.getClass().getDeclaredField(name);

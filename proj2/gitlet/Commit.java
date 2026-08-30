@@ -10,7 +10,7 @@ import java.util.Date; // You'll likely use this in this class
  *  It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author DoubleMountain
  */
 public class Commit implements Serializable {
     /**
@@ -90,5 +90,14 @@ public class Commit implements Serializable {
      */
     public void trackBlob(String name, String blob) {
         tree.put(name, blob);
+    }
+
+    /**
+     * Untrack the blob with a certain file name
+     * @param name the name of the file
+     * @return the blob that was tracked by the name before, null if nothing was tracked.
+     */
+    public String untrackBlob(String name) {
+        return tree.remove(name);
     }
 }

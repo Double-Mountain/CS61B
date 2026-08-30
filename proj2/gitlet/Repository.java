@@ -6,12 +6,13 @@ import static gitlet.Utils.*;
 // any imports you need here
 import java.util.Date;
 import java.util.List;
+import java.util.HashSet;
 
 /** Represents a gitlet repository.
  *  It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author DoubleMountain
  */
 public class Repository {
     /**
@@ -31,6 +32,7 @@ public class Repository {
     public static final File BLOBS = join(GITLET_DIR, "blobs");
     public static final File STAGING = join(GITLET_DIR, "staging");
     public static final File HEAD = join(GITLET_DIR, "head");
+    public static final File REMOVAL = join(GITLET_DIR, "removal");
 
     /* fill in the rest of this class. */
 
@@ -47,21 +49,49 @@ public class Repository {
         BLOBS.mkdir();
         STAGING.mkdir();
         BRANCHES.mkdir();
-        String first = createCommitFile(new Commit("initial commit", new Date(0), null));
+        HashSet<String> removal = new HashSet<>();
+        writeObject(REMOVAL, removal);
+        String first = saveCommit(new Commit("initial commit", new Date(0), null));
         setBranch("master", first);
         moveHead("master");
     }
 
     /**
-     * Create a new commit file
-     * @param commit the commit object to create
+     * Save the commit
+     * @param commit the commit object to be saved
      * @return the SHA-1 of the commit file
      */
-    private static String createCommitFile(Commit commit) {
+    private static String saveCommit(Commit commit) {
         String name = sha1(serialize(commit));
         File file = join(COMMITS, name);
         writeObject(file, commit);
         return name;
+    }
+
+    /**
+     * Load the commit as an object
+     * @param name the SHA-1 of the commit
+     * @return an commit object
+     */
+    private static Commit loadCommit(String name) {
+        return readObject(join(COMMITS, name), Commit.class);
+    }
+
+    /**
+     * Load the commit that a branch points to as an object
+     * @param branch the branch name
+     * @return an commit object
+     */
+    private static Commit loadBranchCommit(String branch) {
+        return loadCommit(getBranch(branch));
+    }
+
+    /**
+     * Load the commit that the head pointer points to as an object
+     * @return an commit object
+     */
+    private static Commit loadHeadCommit() {
+        return loadBranchCommit(getHead());
     }
 
     /**
@@ -113,24 +143,69 @@ public class Repository {
             System.err.println("File does not exist.");
             System.exit(0);
         }
-        if (sha1(readContents(file)).equals(
-            readObject(join(COMMITS, getBranch(getHead())), Commit.class).getBlob(name))) {
-            deleteStaging(name);
+        if (sha1(readContents(file)).equals(loadHeadCommit().getBlob(name))) {
+            unstage(name);
         }
         else {
-            writeContents(join(STAGING, name), readContents(file));
+            stage(name);
         }
+        deleteFromRemoval(name);
     }
 
     /**
-     * Delete a file with a certain name if it exists
+     * Stage a file in CWD if it exists
+     * @param name the file name
+     * @return whether the file exists
+     */
+    private static boolean stage(String name) {
+        File file = join(CWD, name);
+        if (!file.exists()) {
+            return false;
+        }
+        writeContents(join(STAGING, name), readContents(file));
+        return true;
+    }
+    /**
+     * Delete a file in the staging area with a certain name if it exists
      * @param name the name of the file
      * @return whether the file was deleted
      */
-    private static boolean deleteStaging(String name) {
+    private static boolean unstage(String name) {
         return join(STAGING, name).delete();
     }
 
+    /**
+     * Return a list of file names in staging
+     * @return the list of file names
+     */
+    private static List<String> getStagedFileList() {
+        return plainFilenamesIn(STAGING);
+    }
+
+    /**
+     * Return a staged file as a file object
+     * @param name the file name
+     * @return a file object
+     */
+    private static File loadStagedFile(String name) {
+        return join(STAGING, name);
+    }
+
+    /**
+     * Create a blob from a staged file if it exists
+     * @param name the name of the staged file
+     * @return the SHA-1 of the blob, null if the staged file does not exist
+     */
+    private static String createBlob(String name) {
+        File file = loadStagedFile(name);
+        if (!file.exists()) {
+            return null;
+        }
+        byte[] contents = readContents(loadStagedFile(name));
+        String blob = sha1(contents);
+        writeContents(join(BLOBS, blob), contents);
+        return blob;
+    }
     /**
      * Commit the staging files.
      * @param message the commit message
@@ -140,24 +215,61 @@ public class Repository {
             System.err.println("Please enter a commit message.");
             System.exit(0);
         }
-        List<String> stagedFiles = plainFilenamesIn(STAGING);
+        List<String> stagedFiles = getStagedFileList();
         if (stagedFiles.isEmpty()) {
             System.err.println("No changes added to the commit.");
             System.exit(0);
         }
         String branch = getHead();
-        Commit commit = readObject(join(COMMITS, getBranch(branch)), Commit.class);
+        Commit commit = loadHeadCommit();
         commit.setMetadata(message, new Date());
         commit.setParents(getBranch(branch), null);
         for (String name : stagedFiles) {
-            File src = join(STAGING, name);
-            byte[] contents = readContents(src);
-            String blob = sha1(contents);
-            writeContents(join(BLOBS, blob), contents);
+            String blob = createBlob(name);
             commit.trackBlob(name, blob);
-            deleteStaging(name);
+            unstage(name);
         }
-        String name = createCommitFile(commit);
+        HashSet<String> removal = loadRemoval();
+        for (String name : removal) {
+            commit.untrackBlob(name);
+        }
+        String name = saveCommit(commit);
         setBranch(branch, name);
+    }
+
+    /**
+     * Delete a file in removal if it existed
+     * @param name the file to be deleted
+     * @return whether the file existed before deleting
+     */
+    private static boolean deleteFromRemoval(String name) {
+        HashSet<String> removal = loadRemoval();
+        boolean flag = removal.remove(name);
+        saveRemoval(removal);
+        return flag;
+    }
+
+    /**
+     * Load the removal as a hash set object
+     * @return the removal as a hash set
+     */
+    private static HashSet<String> loadRemoval() {
+        return readObject(REMOVAL, HashSet.class);
+    }
+
+    /**
+     * Save the state of the removal
+     * @param removal the hash set object to be saved as the removal
+     */
+    private static void saveRemoval(HashSet<String> removal) {
+        writeObject(REMOVAL, removal);
+    }
+
+    /**
+     * Unstage a file if it is currently staged for addition
+     * Remove and untrack the file if it is tracked by the current commit
+     * @param name the file name
+     */
+    public static void rm(String name) {
     }
 }
