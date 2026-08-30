@@ -279,7 +279,7 @@ public class Repository {
      */
     public static void rm(String name) {
         boolean staged = unstage(name);
-        boolean tracked = loadHeadCommit().getBlob(name) != null;
+        boolean tracked = (loadHeadCommit().getBlob(name) != null);
         if (!staged && !tracked) {
             System.err.println("No reason to remove the file.");
             System.exit(0);
