@@ -298,20 +298,29 @@ public class Repository {
         String name = getBranch(getHead());
         Commit current = loadCommit(name);
         while (true) {
-            System.out.println("===");
-            System.out.println("commit " + name);
-            if (current.getSecondParent() != null) {
-                System.out.println("Merge: " + current.getParent().substring(0, 7) + " " + current.getSecondParent().substring(0, 7));
-            }
-            Date time = current.getTime();
-            System.out.println(String.format(Locale.US, "Date: %ta %tb %td %tH:%tM:%tS %tY %tz", time, time, time, time, time, time, time, time));
-            System.out.println(current.getMessage());
-            System.out.println("");
+            printLog(name);
             name = current.getParent();
             if (name == null) {
                 break;
             }
             current = loadCommit(name);
         }
+    }
+
+    /**
+     * Print the log of a certain commit
+     * @param name the SHA-1 of the commit to be printed
+     */
+    private static void printLog(String name) {
+        Commit commit = loadCommit(name);
+        System.out.println("===");
+        System.out.println("commit " + name);
+        if (commit.getSecondParent() != null) {
+            System.out.println("Merge: " + commit.getParent().substring(0, 7) + " " + commit.getSecondParent().substring(0, 7));
+        }
+        Date time = commit.getTime();
+        System.out.println(String.format(Locale.US, "Date: %ta %tb %td %tH:%tM:%tS %tY %tz", time, time, time, time, time, time, time, time));
+        System.out.println(commit.getMessage());
+        System.out.println("");
     }
 }
