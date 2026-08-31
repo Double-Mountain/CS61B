@@ -76,7 +76,7 @@ public class Main {
                 Repository.log();
                 break;
             case "global-log":
-                // handel the 'rm global-log' command
+                // handel the 'global-log' command
                 if (args.length != 1) {
                     System.err.println(OPERANDS);
                     System.exit(0);
