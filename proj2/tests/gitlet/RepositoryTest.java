@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /** Unit tests for Repository.init() and the helpers it exercises. */
@@ -32,6 +33,7 @@ public class RepositoryTest {
         assertTrue(Repository.BRANCHES.isDirectory());
         assertTrue(Repository.HEAD.isFile());
         assertTrue(Repository.REMOVAL.isFile());
+        assertTrue(Repository.ADDITION.isFile());
     }
 
     @Test
@@ -76,6 +78,7 @@ public class RepositoryTest {
         File staged = Utils.join(Repository.STAGING, "wug.txt");
         assertTrue(staged.isFile());
         assertEquals("hello", Utils.readContentsAsString(staged));
+        assertEquals(Utils.sha1("hello"), loadAddition().get("wug.txt"));
     }
 
     @Test
@@ -90,6 +93,7 @@ public class RepositoryTest {
 
         File staged = Utils.join(Repository.STAGING, "wug.txt");
         assertEquals("version 2", Utils.readContentsAsString(staged));
+        assertEquals(Utils.sha1("version 2"), loadAddition().get("wug.txt"));
     }
 
     @Test
@@ -105,6 +109,7 @@ public class RepositoryTest {
         String blob = Utils.sha1("hello");
         assertTrue(Utils.join(Repository.BLOBS, blob).isFile());
         assertTrue(Utils.plainFilenamesIn(Repository.STAGING).isEmpty());
+        assertTrue(loadAddition().isEmpty());
 
         String newCommitId = Utils.readContentsAsString(
                 Utils.join(Repository.BRANCHES, "master"));
@@ -130,6 +135,7 @@ public class RepositoryTest {
         assertTrue(wug.isFile());
         assertFalse(Utils.join(Repository.STAGING, "wug.txt").exists());
         assertTrue(loadRemoval().isEmpty());
+        assertTrue(loadAddition().isEmpty());
     }
 
     @Test
@@ -290,6 +296,10 @@ public class RepositoryTest {
 
     private static HashSet<String> loadRemoval() {
         return Utils.readObject(Repository.REMOVAL, HashSet.class);
+    }
+
+    private static HashMap<String, String> loadAddition() {
+        return Utils.readObject(Repository.ADDITION, HashMap.class);
     }
 
     private static Object field(Object obj, String name) throws Exception {

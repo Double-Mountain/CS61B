@@ -132,4 +132,12 @@ public class Commit implements Serializable {
     public String getMessage() {
         return message;
     }
+
+    /**
+     * Return the tree of the commit as a map
+     * @return the tree of the commit
+     */
+    public Map<String, String> getTree() {
+        return tree;
+    }
 }

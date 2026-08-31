@@ -6,8 +6,14 @@ import static gitlet.Utils.*;
 // any imports you need here
 import java.util.Date;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.Map;
+import java.util.HashMap;
 
 /** Represents a gitlet repository.
  *  It's a good idea to give a description here of what else this Class
@@ -34,6 +40,7 @@ public class Repository {
     public static final File STAGING = join(GITLET_DIR, "staging");
     public static final File HEAD = join(GITLET_DIR, "head");
     public static final File REMOVAL = join(GITLET_DIR, "removal");
+    public static final File ADDITION = join(GITLET_DIR, "addition");
 
     /* fill in the rest of this class. */
 
@@ -52,6 +59,8 @@ public class Repository {
         BRANCHES.mkdir();
         HashSet<String> removal = new HashSet<>();
         writeObject(REMOVAL, removal);
+        HashMap<String, String> addition = new HashMap<>();
+        writeObject(ADDITION, addition);
         String first = saveCommit(new Commit("initial commit", new Date(0), null));
         setBranch("master", first);
         moveHead("master");
@@ -164,6 +173,7 @@ public class Repository {
             return false;
         }
         writeContents(join(STAGING, name), readContents(file));
+        addToAddition(name);
         return true;
     }
     /**
@@ -172,15 +182,59 @@ public class Repository {
      * @return whether the file was deleted
      */
     private static boolean unstage(String name) {
+        deleteFromAddition(name);
         return join(STAGING, name).delete();
     }
 
     /**
-     * Return a list of file names in staging
-     * @return the list of file names
+     * Load addition as a hash map object
+     * @return a hash map object
      */
-    private static List<String> getStagedFileList() {
-        return plainFilenamesWithoutOrder(STAGING);
+    private static HashMap<String, String> loadAddition() {
+        return readObject(ADDITION, HashMap.class);
+    }
+
+    /**
+     * Save a hash map object as addition
+     * @param addition a hash map object
+     */
+    private static void saveAddition(HashMap<String, String> addition) {
+        writeObject(ADDITION, addition);
+    }
+
+    /**
+     * Add a staged file to addition if it exists
+     * @param name the name of the staged file
+     * @return whether the file exists in the staging area
+     */
+    private static boolean addToAddition(String name) {
+        File file = join(STAGING, name);
+        if (!file.exists()) return false;
+        HashMap<String, String> addition = loadAddition();
+        addition.put(name, sha1(readContents(file)));
+        saveAddition(addition);
+        return true;
+    }
+
+    /**
+     * Delete a file from addition
+     * @param name the name of the file to be deleted
+     * @return the SHA-1 of the file if it existed in addition, null otherwise
+     */
+    private static String deleteFromAddition(String name) {
+        HashMap<String, String> addition = loadAddition();
+        String ret = addition.remove(name);
+        saveAddition(addition);
+        return ret;
+    }
+
+    /**
+     * Return a set of file names in staging
+     * Will synchronized with changes of the staging area
+     * @return the set of file names
+     */
+    private static Set<String> getStagedFileSet() {
+        return loadAddition().keySet();
     }
 
     /**
@@ -216,7 +270,7 @@ public class Repository {
             System.err.println("Please enter a commit message.");
             System.exit(0);
         }
-        List<String> stagedFiles = getStagedFileList();
+        Set<String> stagedFiles = new HashSet<>(getStagedFileSet());
         HashSet<String> removal = loadRemoval();
         if (stagedFiles.isEmpty() && removal.isEmpty()) {
             System.err.println("No changes added to the commit.");
@@ -234,9 +288,16 @@ public class Repository {
         for (String name : removal) {
             commit.untrackBlob(name);
         }
-        saveRemoval(new HashSet<String>());
+        clearRemoval();
         String name = saveCommit(commit);
         setBranch(branch, name);
+    }
+
+    /**
+     * Delete all files from removal
+     */
+    private static void clearRemoval() {
+        saveRemoval(new HashSet<String>());
     }
 
     /**
@@ -366,7 +427,7 @@ public class Repository {
      */
     /*public static void status() {
         System.out.println("=== Branches ===");
-        List<String> branches = getBranchList();
+        List<String> branches = getSortedBranchList();
         for (String branch : branches) {
             if (getHead().equals(branch)) {
                 System.out.print("*");
@@ -376,13 +437,59 @@ public class Repository {
         System.out.println("");
 
         System.out.println("=== Staged Files ===");
+        List<String> stagedFiles = getSortedStagedFileList();
+        for (String file : stagedFiles) {
+            System.out.println(file);
+        }
+        System.out.println("");
+
+        System.out.println("=== Removed Files ===");
+        List<String> removedFiles = getSortedRemovalList();
+        for (String file : removedFiles) {
+            System.out.println(file);
+        }
+        System.out.println("");
+
+        
     }*/
 
     /**
-     * Return a list of all names of branches
+     * Return a sorted list of all names of branches
      * @return a list of strings
      */
-    /*private static List<String> getBranchList() {
+    /*private static List<String> getSortedBranchList() {
         return plainFilenamesIn(BRANCHES);
     }*/
+
+    /**
+     * Return a sorted list of all names of staged files
+     * @return a list of strings
+     */
+    /*private static List<String> getSortedStagedFileList() {
+        List<String> list = new ArrayList<>(getStagedFileSet());
+        list.sort(Comparator.naturalOrder());
+        return list;
+    }*/
+
+    /**
+     * Return a sorted list of all file names in removal
+     * @return a list of strings
+     */
+    /*private static List<String> getSortedRemovalList() {
+        ArrayList<String> list = new ArrayList<>(loadRemoval());
+        list.sort(Comparator.naturalOrder());
+        return list;
+    }*/
+
+    /**
+     * Return a sorted map of all names of files that are modified but not staged
+     * Value = true means modified, and Value = false means deleted
+     * @return a map from String to Boolean
+     */
+    /*private static Map<String, Boolean> getSortedNotStagedMap() {
+        Map<String, String> treeMap = new HashMap<>(loadHeadCommit().getTree());
+        Set<String> stagingSet = new HashSet<>(getStagedFileList());
+        Set<String> 
+    }*/
+
 }

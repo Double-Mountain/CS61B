@@ -116,6 +116,23 @@ public class CommitTest {
         assertNull(commit.getSecondParent());
     }
 
+    @Test
+    public void testGetTreeStartsEmpty() {
+        Commit commit = new Commit("message", new Date(0), null);
+
+        assertTrue(commit.getTree().isEmpty());
+    }
+
+    @Test
+    public void testGetTreeReturnsTrackedBlobs() {
+        Commit commit = new Commit("message", new Date(0), null);
+        commit.trackBlob("wug.txt", "abc123");
+
+        Map<String, String> tree = commit.getTree();
+        assertEquals(1, tree.size());
+        assertEquals("abc123", tree.get("wug.txt"));
+    }
+
     /** Returns the value of the private field named NAME on OBJ. */
     private static Object field(Object obj, String name) throws Exception {
         Field f = obj.getClass().getDeclaredField(name);
