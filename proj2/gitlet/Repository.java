@@ -180,7 +180,7 @@ public class Repository {
      * @return the list of file names
      */
     private static List<String> getStagedFileList() {
-        return plainFilenamesIn(STAGING);
+        return plainFilenamesWithoutOrder(STAGING);
     }
 
     /**
@@ -339,11 +339,11 @@ public class Repository {
      * @return the SHA-1s of all commits
      */
     private static List<String> getCommitList() {
-        return plainFilenamesIn(join(COMMITS));
+        return plainFilenamesWithoutOrder(COMMITS);
     }
 
     /**
-     * Prints out all SHA-1 of commits with the given commit message
+     * Print out all SHA-1 of commits with the given commit message
      * @param message the commit message to be found
      */
     public static void find(String message) {
@@ -360,4 +360,29 @@ public class Repository {
             System.err.println("Found no commit with that message.");
         }
     }
+
+    /**
+     * Print out the status of the current repository
+     */
+    /*public static void status() {
+        System.out.println("=== Branches ===");
+        List<String> branches = getBranchList();
+        for (String branch : branches) {
+            if (getHead().equals(branch)) {
+                System.out.print("*");
+            }
+            System.out.println(branch);
+        }
+        System.out.println("");
+
+        System.out.println("=== Staged Files ===");
+    }*/
+
+    /**
+     * Return a list of all names of branches
+     * @return a list of strings
+     */
+    /*private static List<String> getBranchList() {
+        return plainFilenamesIn(BRANCHES);
+    }*/
 }

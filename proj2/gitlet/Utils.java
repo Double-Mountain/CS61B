@@ -188,6 +188,18 @@ class Utils {
         return plainFilenamesIn(new File(dir));
     }
 
+    /** Returns a list of the names of all plain files in the directory DIR, in
+     *  random order.  Returns null if DIR does
+     *  not denote a directory. */
+    static List<String> plainFilenamesWithoutOrder(File dir) {
+        String[] files = dir.list(PLAIN_FILES);
+        if (files == null) {
+            return null;
+        } else {
+            return Arrays.asList(files);
+        }
+    }
+
     /* OTHER FILE UTILITIES */
 
     /** Return the concatentation of FIRST and OTHERS into a File designator,
