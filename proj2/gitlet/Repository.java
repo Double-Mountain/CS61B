@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.TreeMap;
 import java.util.Map;
 import java.util.HashMap;
@@ -230,7 +231,6 @@ public class Repository {
 
     /**
      * Return a set of file names in staging
-     * Will synchronized with changes of the staging area
      * @return the set of file names
      */
     private static Set<String> getStagedFileSet() {
@@ -270,7 +270,7 @@ public class Repository {
             System.err.println("Please enter a commit message.");
             System.exit(0);
         }
-        Set<String> stagedFiles = new HashSet<>(getStagedFileSet());
+        Set<String> stagedFiles = getStagedFileSet();
         HashSet<String> removal = loadRemoval();
         if (stagedFiles.isEmpty() && removal.isEmpty()) {
             System.err.println("No changes added to the commit.");
@@ -425,7 +425,7 @@ public class Repository {
     /**
      * Print out the status of the current repository
      */
-    /*public static void status() {
+    public static void status() {
         System.out.println("=== Branches ===");
         List<String> branches = getSortedBranchList();
         for (String branch : branches) {
@@ -449,47 +449,105 @@ public class Repository {
             System.out.println(file);
         }
         System.out.println("");
-
         
-    }*/
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        Map<String, Boolean> notStagedFiles = getSortedNotStagedMap();
+        for (String file : notStagedFiles.keySet()) {
+            System.out.print(file);
+            if (notStagedFiles.get(file)) {
+                System.out.println(" (modified)");
+            } else {
+                System.out.println(" (deleted)");
+            }
+        }
+        System.out.println("");
+
+        System.out.println("=== Untracked Files ===");
+        Set<String> untrackedFiles = getSortedUntrackedSet();
+        for (String file : untrackedFiles) {
+            System.out.println(file);
+        }
+        System.out.println("");
+    }
 
     /**
      * Return a sorted list of all names of branches
      * @return a list of strings
      */
-    /*private static List<String> getSortedBranchList() {
+    private static List<String> getSortedBranchList() {
         return plainFilenamesIn(BRANCHES);
-    }*/
+    }
 
     /**
      * Return a sorted list of all names of staged files
      * @return a list of strings
      */
-    /*private static List<String> getSortedStagedFileList() {
+    private static List<String> getSortedStagedFileList() {
         List<String> list = new ArrayList<>(getStagedFileSet());
         list.sort(Comparator.naturalOrder());
         return list;
-    }*/
+    }
 
     /**
      * Return a sorted list of all file names in removal
      * @return a list of strings
      */
-    /*private static List<String> getSortedRemovalList() {
+    private static List<String> getSortedRemovalList() {
         ArrayList<String> list = new ArrayList<>(loadRemoval());
         list.sort(Comparator.naturalOrder());
         return list;
-    }*/
+    }
 
     /**
      * Return a sorted map of all names of files that are modified but not staged
      * Value = true means modified, and Value = false means deleted
      * @return a map from String to Boolean
      */
-    /*private static Map<String, Boolean> getSortedNotStagedMap() {
-        Map<String, String> treeMap = new HashMap<>(loadHeadCommit().getTree());
-        Set<String> stagingSet = new HashSet<>(getStagedFileList());
-        Set<String> 
-    }*/
+    private static Map<String, Boolean> getSortedNotStagedMap() {
+        Map<String, String> tree = new HashMap<>(loadHeadCommit().getTree());
+        Map<String, String> addition = loadAddition();
+        Set<String> removal = loadRemoval();
+        Set<String> cwd = new HashSet<>(plainFilenamesIn(CWD));
+        Map<String, Boolean> notStaged = new TreeMap<>();
+        for (String file : cwd) {
+            if (addition.containsKey(file)) {
+                if (!sha1(readContents(join(CWD, file))).equals(addition.get(file))) {
+                    notStaged.put(file, true);
+                }
+            } else if (tree.containsKey(file) && !removal.contains(file)) {
+                if (!sha1(readContents(join(CWD, file))).equals(tree.get(file))) {
+                    notStaged.put(file, true);
+                }
+            }
+        }
+        for (String file : addition.keySet()) {
+            if (!cwd.contains(file)) {
+                notStaged.put(file, false);
+            }
+        }
+        for (String file : tree.keySet()) {
+            if (!removal.contains(file) && !cwd.contains(file)) {
+                notStaged.put(file, false);
+            }
+        }
+        return notStaged;
+    }
 
+    /**
+     * Return a sorted set of all untracked files in cwd
+     * @return a sorted set
+     */
+    private static Set<String> getSortedUntrackedSet() {
+        Set<String> tree = loadHeadCommit().getTree().keySet();
+        Set<String> addition = getStagedFileSet();
+        Set<String> removal = loadRemoval();
+        List<String> cwd = plainFilenamesWithoutOrder(CWD);
+        Set<String> untracked = new TreeSet<>();
+        for (String file : cwd) {
+            if (removal.contains(file) || !addition.contains(file) && !tree.contains(file)) {
+                untracked.add(file);
+            }
+        }
+        return untracked;
+    }
 }

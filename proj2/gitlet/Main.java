@@ -99,7 +99,7 @@ public class Main {
                 }
                 Repository.find(args[1]);
                 break;
-            /*case "status":
+            case "status":
                 // handel the 'status' command
                 if (args.length != 1) {
                     System.err.println(OPERANDS);
@@ -110,7 +110,7 @@ public class Main {
                     System.exit(0);
                 }
                 Repository.status();
-                break;*/
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }

@@ -294,6 +294,50 @@ public class RepositoryTest {
         assertEquals(2, output.trim().split("\n").length);
     }
 
+    @Test
+    public void testStatusShowsBranchesAndStagedFiles() throws Exception {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
+        Repository.add("wug.txt");
+
+        String output = captureStatus();
+
+        assertTrue(output.contains("=== Branches ==="));
+        assertTrue(output.contains("*master"));
+        assertTrue(output.contains("=== Staged Files ==="));
+        assertTrue(output.contains("wug.txt"));
+        assertTrue(output.contains("=== Modifications Not Staged For Commit ==="));
+    }
+
+    @Test
+    public void testStatusShowsModifiedAndDeletedFiles() throws Exception {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "hello");
+        Repository.add("wug.txt");
+        Repository.commit("added wug");
+
+        Utils.writeContents(wug, "changed");
+        String modified = captureStatus();
+        assertTrue(modified.contains("wug.txt (modified)"));
+
+        wug.delete();
+        String deleted = captureStatus();
+        assertTrue(deleted.contains("wug.txt (deleted)"));
+    }
+
+    private static String captureStatus() throws Exception {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(buffer));
+        try {
+            Repository.status();
+        } finally {
+            System.setOut(original);
+        }
+        return buffer.toString();
+    }
+
     private static HashSet<String> loadRemoval() {
         return Utils.readObject(Repository.REMOVAL, HashSet.class);
     }
