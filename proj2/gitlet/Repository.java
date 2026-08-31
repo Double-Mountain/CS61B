@@ -156,8 +156,7 @@ public class Repository {
         }
         if (sha1(readContents(file)).equals(loadHeadCommit().getBlob(name))) {
             unstage(name);
-        }
-        else {
+        } else {
             stage(name);
         }
         deleteFromRemoval(name);
