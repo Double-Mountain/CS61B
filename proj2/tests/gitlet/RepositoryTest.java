@@ -4,7 +4,9 @@ import org.junit.Test;
 import org.junit.Before;
 import static org.junit.Assert.*;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.HashSet;
@@ -173,6 +175,42 @@ public class RepositoryTest {
                 Utils.join(Repository.COMMITS, newCommitId), Commit.class);
         assertNull(commit.getBlob("wug.txt"));
         assertTrue(loadRemoval().isEmpty());
+    }
+
+    @Test
+    public void testLogPrintsCommitsNewestFirst() throws Exception {
+        Repository.init();
+        String initial = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
+        Repository.add("wug.txt");
+        Repository.commit("first message");
+        String first = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v2");
+        Repository.add("wug.txt");
+        Repository.commit("second message");
+        String second = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(buffer));
+        try {
+            Repository.log();
+        } finally {
+            System.setOut(original);
+        }
+        String output = buffer.toString();
+
+        assertTrue(output.contains("commit " + second));
+        assertTrue(output.contains("commit " + first));
+        assertTrue(output.contains("commit " + initial));
+        assertTrue(output.contains("Date: "));
+        assertTrue(output.indexOf("second message") < output.indexOf("first message"));
+        assertTrue(output.indexOf("first message") < output.indexOf("initial commit"));
     }
 
     private static HashSet<String> loadRemoval() {

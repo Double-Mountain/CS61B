@@ -97,6 +97,25 @@ public class CommitTest {
         assertNull(commit.untrackBlob("wug.txt"));
     }
 
+    @Test
+    public void testGettersReturnMetadata() {
+        Date time = new Date(1000L);
+        Commit commit = new Commit("message", time, "parent1", "parent2");
+
+        assertEquals("message", commit.getMessage());
+        assertEquals(time, commit.getTime());
+        assertEquals("parent1", commit.getParent());
+        assertEquals("parent2", commit.getSecondParent());
+    }
+
+    @Test
+    public void testGettersReturnNullForInitialCommit() {
+        Commit commit = new Commit("initial commit", new Date(0), null);
+
+        assertNull(commit.getParent());
+        assertNull(commit.getSecondParent());
+    }
+
     /** Returns the value of the private field named NAME on OBJ. */
     private static Object field(Object obj, String name) throws Exception {
         Field f = obj.getClass().getDeclaredField(name);

@@ -100,4 +100,36 @@ public class Commit implements Serializable {
     public String untrackBlob(String name) {
         return tree.remove(name);
     }
+
+    /**
+     * Return the first parent of the commit
+     * @return the SHA-1 of the first parent, null if it does not have a parent
+     */
+    public String getParent() {
+        return parent;
+    }
+
+    /**
+     * Return the second parent of the commit
+     * @return the SHA-1 of the second parent, null if it does not have a second parent
+     */
+    public String getSecondParent() {
+        return secondParent;
+    }
+
+    /**
+     * Return the timestamp of the commit as a Date object
+     * @return a Date object
+     */
+    public Date getTime() {
+        return timestamp;
+    }
+
+    /**
+     * Return the message of the commit
+     * @return the message of the commit
+     */
+    public String getMessage() {
+        return message;
+    }
 }

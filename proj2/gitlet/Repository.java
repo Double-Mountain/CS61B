@@ -6,6 +6,7 @@ import static gitlet.Utils.*;
 // any imports you need here
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.HashSet;
 
 /** Represents a gitlet repository.
@@ -287,6 +288,30 @@ public class Repository {
         if (tracked) {
             restrictedDelete(join(CWD, name));
             addToRemoval(name);
+        }
+    }
+
+    /**
+     * Display the history of the current commit, following the first parents.
+     */
+    public static void log() {
+        String name = getBranch(getHead());
+        Commit current = loadCommit(name);
+        while (true) {
+            System.out.println("===");
+            System.out.println("commit " + name);
+            if (current.getSecondParent() != null) {
+                System.out.println("Merge: " + current.getParent().substring(0, 7) + " " + current.getSecondParent().substring(0, 7));
+            }
+            Date time = current.getTime();
+            System.out.println(String.format(Locale.US, "Date: %ta %tb %td %tH:%tM:%tS %tY %tz", time, time, time, time, time, time, time, time));
+            System.out.println(current.getMessage());
+            System.out.println("");
+            name = current.getParent();
+            if (name == null) {
+                break;
+            }
+            current = loadCommit(name);
         }
     }
 }
