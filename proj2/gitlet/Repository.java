@@ -340,5 +340,24 @@ public class Repository {
      */
     private static List<String> getCommitList() {
         return plainFilenamesIn(join(COMMITS));
-    } 
+    }
+
+    /**
+     * Prints out all SHA-1 of commits with the given commit message
+     * @param message the commit message to be found
+     */
+    public static void find(String message) {
+        List<String> commits = getCommitList();
+        boolean found = false;
+        for (String name : commits) {
+            Commit current = loadCommit(name);
+            if (current.getMessage().equals(message)) {
+                found = true;
+                System.out.println(name);
+            }
+        }
+        if (!found) {
+            System.err.println("Found no commit with that message.");
+        }
+    }
 }

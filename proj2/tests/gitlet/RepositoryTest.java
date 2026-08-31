@@ -250,6 +250,44 @@ public class RepositoryTest {
         assertEquals(3, output.split("===", -1).length - 1);
     }
 
+    @Test
+    public void testFindPrintsMatchingCommitIds() throws Exception {
+        Repository.init();
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
+        Repository.add("wug.txt");
+        Repository.commit("first message");
+        String first = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v2");
+        Repository.add("wug.txt");
+        Repository.commit("second message");
+        String second = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v3");
+        Repository.add("wug.txt");
+        Repository.commit("first message");
+        String third = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(buffer));
+        try {
+            Repository.find("first message");
+        } finally {
+            System.setOut(original);
+        }
+        String output = buffer.toString();
+
+        assertTrue(output.contains(first));
+        assertTrue(output.contains(third));
+        assertFalse(output.contains(second));
+        assertEquals(2, output.trim().split("\n").length);
+    }
+
     private static HashSet<String> loadRemoval() {
         return Utils.readObject(Repository.REMOVAL, HashSet.class);
     }
