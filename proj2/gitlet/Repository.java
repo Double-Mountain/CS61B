@@ -323,4 +323,22 @@ public class Repository {
         System.out.println(commit.getMessage());
         System.out.println("");
     }
+
+    /**
+     * Print the logs of all commits
+     */
+    public static void globalLog() {
+        List<String> commits = getCommitList();
+        for (String name : commits) {
+            printLog(name);
+        }
+    }
+
+    /**
+     * Return all commit names as a list
+     * @return the SHA-1s of all commits
+     */
+    private static List<String> getCommitList() {
+        return plainFilenamesIn(join(COMMITS));
+    } 
 }

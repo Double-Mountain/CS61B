@@ -213,6 +213,43 @@ public class RepositoryTest {
         assertTrue(output.indexOf("first message") < output.indexOf("initial commit"));
     }
 
+    @Test
+    public void testGlobalLogPrintsAllCommits() throws Exception {
+        Repository.init();
+        String initial = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
+        Repository.add("wug.txt");
+        Repository.commit("first message");
+        String first = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v2");
+        Repository.add("wug.txt");
+        Repository.commit("second message");
+        String second = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(buffer));
+        try {
+            Repository.globalLog();
+        } finally {
+            System.setOut(original);
+        }
+        String output = buffer.toString();
+
+        assertTrue(output.contains("commit " + initial));
+        assertTrue(output.contains("commit " + first));
+        assertTrue(output.contains("commit " + second));
+        assertTrue(output.contains("initial commit"));
+        assertTrue(output.contains("first message"));
+        assertTrue(output.contains("second message"));
+        assertEquals(3, output.split("===", -1).length - 1);
+    }
+
     private static HashSet<String> loadRemoval() {
         return Utils.readObject(Repository.REMOVAL, HashSet.class);
     }

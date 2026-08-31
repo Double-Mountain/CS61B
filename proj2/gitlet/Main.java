@@ -64,7 +64,7 @@ public class Main {
                 Repository.rm(args[1]);
                 break;
             case "log":
-                // handel the 'rm [file name]' command
+                // handel the 'log' command
                 if (args.length != 1) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -74,6 +74,18 @@ public class Main {
                     System.exit(0);
                 }
                 Repository.log();
+                break;
+            case "global-log":
+                // handel the 'rm global-log' command
+                if (args.length != 1) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.GITLET_DIR.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.globalLog();
                 break;
             default:
                 System.err.println("No command with that name exists.");
