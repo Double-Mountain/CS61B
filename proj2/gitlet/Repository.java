@@ -507,7 +507,7 @@ public class Repository {
         Map<String, String> tree = new HashMap<>(loadHeadCommit().getTree());
         Map<String, String> addition = loadAddition();
         Set<String> removal = loadRemoval();
-        Set<String> cwd = new HashSet<>(plainFilenamesIn(CWD));
+        Set<String> cwd = new HashSet<>(plainFilenamesWithoutOrder(CWD));
         Map<String, Boolean> notStaged = new TreeMap<>();
         for (String file : cwd) {
             if (addition.containsKey(file)) {
