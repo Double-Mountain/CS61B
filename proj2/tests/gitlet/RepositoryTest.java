@@ -20,6 +20,10 @@ public class RepositoryTest {
         deleteRecursively(Repository.GITLET_DIR);
         deleteRecursively(Utils.join(Repository.CWD, "wug.txt"));
         deleteRecursively(Utils.join(Repository.CWD, "notwug.txt"));
+        deleteRecursively(Utils.join(Repository.CWD, "a.txt"));
+        deleteRecursively(Utils.join(Repository.CWD, "b.txt"));
+        deleteRecursively(Utils.join(Repository.CWD, "c.txt"));
+        deleteRecursively(Utils.join(Repository.CWD, "d.txt"));
     }
 
     @Test
@@ -324,6 +328,58 @@ public class RepositoryTest {
         wug.delete();
         String deleted = captureStatus();
         assertTrue(deleted.contains("wug.txt (deleted)"));
+    }
+
+    @Test
+    public void testStatusListsBranchesInSortedOrder() throws Exception {
+        Repository.init();
+        String master = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        Utils.writeContents(Utils.join(Repository.BRANCHES, "zeta"), master);
+        Utils.writeContents(Utils.join(Repository.BRANCHES, "alpha"), master);
+
+        String output = captureStatus();
+
+        assertTrue(output.indexOf("alpha") < output.indexOf("master"));
+        assertTrue(output.indexOf("master") < output.indexOf("zeta"));
+    }
+
+    @Test
+    public void testStatusListsStagedAndUntrackedFilesInSortedOrder() throws Exception {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "c.txt"), "v1");
+        Utils.writeContents(Utils.join(Repository.CWD, "a.txt"), "v1");
+        Utils.writeContents(Utils.join(Repository.CWD, "b.txt"), "v2");
+        Utils.writeContents(Utils.join(Repository.CWD, "d.txt"), "v2");
+        Repository.add("a.txt");
+        Repository.add("c.txt");
+
+        String output = captureStatus();
+
+        assertTrue(output.indexOf("a.txt") < output.indexOf("c.txt"));
+        assertTrue(output.indexOf("b.txt") < output.indexOf("d.txt"));
+    }
+
+    @Test
+    public void testStatusListsModifiedAndRemovedFilesInSortedOrder() throws Exception {
+        Repository.init();
+        File a = Utils.join(Repository.CWD, "a.txt");
+        File c = Utils.join(Repository.CWD, "c.txt");
+        Utils.writeContents(a, "v1");
+        Utils.writeContents(c, "v1");
+        Repository.add("a.txt");
+        Repository.add("c.txt");
+        Repository.commit("added a and c");
+
+        Utils.writeContents(a, "changed");
+        Utils.writeContents(c, "changed");
+        String modified = captureStatus();
+        assertTrue(modified.indexOf("a.txt (modified)") < modified.indexOf("c.txt (modified)"));
+
+        Repository.rm("a.txt");
+        Repository.rm("c.txt");
+        String removed = captureStatus();
+        assertTrue(removed.indexOf("a.txt") < removed.indexOf("c.txt"));
     }
 
     private static String captureStatus() throws Exception {
