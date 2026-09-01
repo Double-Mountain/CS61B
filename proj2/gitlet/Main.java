@@ -140,6 +140,18 @@ public class Main {
                 }
                 Repository.branch(args[1]);
                 break;
+            case "rm-branch":
+                // handel the 'rm-branch [branch name]' command
+                if (args.length != 2) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.GITLET_DIR.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.rmBranch(args[1]);
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }

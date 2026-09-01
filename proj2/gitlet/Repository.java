@@ -661,11 +661,30 @@ public class Repository {
         clearRemoval();
     }
 
+    /**
+     * Create a new branch with the given name
+     * @param branch the name of the branch
+     */
     public static void branch(String branch) {
         if (getBranch(branch) != null) {
             System.err.println("A branch with that name already exists.");
             System.exit(0);
         }
         setBranch(branch, getBranch(getHead()));
+    }
+
+    /**
+     * Remove a branch
+     * @param branch the name of the branch
+     */
+    public static void rmBranch(String branch) {
+        if (branch.equals(getHead())) {
+            System.err.println("Cannot remove the current branch.");
+            System.exit(0);
+        }
+        if (!join(BRANCHES, branch).delete()) {
+            System.err.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
     }
 }

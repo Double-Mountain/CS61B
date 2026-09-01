@@ -450,6 +450,21 @@ public class RepositoryTest {
     }
 
     @Test
+    public void testRmBranchDeletesBranch() throws Exception {
+        Repository.init();
+        Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
+        Repository.add("wug.txt");
+        Repository.commit("v1");
+        Repository.branch("feature");
+        File feature = Utils.join(Repository.BRANCHES, "feature");
+        assertTrue(feature.isFile());
+
+        Repository.rmBranch("feature");
+
+        assertFalse(feature.exists());
+    }
+
+    @Test
     public void testCheckoutBranchSwitchesHeadAndFiles() throws Exception {
         Repository.init();
         File wug = Utils.join(Repository.CWD, "wug.txt");
