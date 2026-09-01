@@ -164,7 +164,7 @@ public class Main {
                 }
                 Repository.reset(args[1]);
                 break;
-            /*case "merge":
+            case "merge":
                 // handel the 'merge [branch name]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
@@ -175,7 +175,7 @@ public class Main {
                     System.exit(0);
                 }
                 Repository.merge(args[1]);
-                break;*/
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }

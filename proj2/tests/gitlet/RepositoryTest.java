@@ -535,6 +535,120 @@ public class RepositoryTest {
         assertEquals("v1", Utils.readContentsAsString(wug));
     }
 
+    @Test
+    public void testMergeFastForward() throws Exception {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "v1\n");
+        Repository.add("wug.txt");
+        Repository.commit("v1");
+        Repository.branch("feature");
+        Repository.checkoutBranch("feature");
+
+        Utils.writeContents(wug, "v2\n");
+        Repository.add("wug.txt");
+        Repository.commit("v2");
+        String feature = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "feature"));
+        Repository.checkoutBranch("master");
+
+        String output = captureMerge("feature");
+
+        assertEquals(feature, Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master")));
+        assertEquals("v2\n", Utils.readContentsAsString(wug));
+        assertTrue(output.contains("Current branch fast-forwarded."));
+    }
+
+    @Test
+    public void testMergeCreatesMergeCommit() throws Exception {
+        Repository.init();
+        File a = Utils.join(Repository.CWD, "a.txt");
+        Utils.writeContents(a, "a1\n");
+        Repository.add("a.txt");
+        Repository.commit("base");
+        Repository.branch("feature");
+        Repository.checkoutBranch("feature");
+
+        File b = Utils.join(Repository.CWD, "b.txt");
+        Utils.writeContents(b, "b1\n");
+        Repository.add("b.txt");
+        Repository.commit("feature b");
+        String feature = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "feature"));
+        Repository.checkoutBranch("master");
+
+        File c = Utils.join(Repository.CWD, "c.txt");
+        Utils.writeContents(c, "c1\n");
+        Repository.add("c.txt");
+        Repository.commit("master c");
+        String master = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        String output = captureMerge("feature");
+        String mergedId = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        Commit merged = Utils.readObject(
+                Utils.join(Repository.COMMITS, mergedId), Commit.class);
+
+        assertEquals(master, merged.getParent());
+        assertEquals(feature, merged.getSecondParent());
+        assertEquals("Merged feature into master.", merged.getMessage());
+        assertEquals(Utils.sha1("a1\n"), merged.getBlob("a.txt"));
+        assertEquals(Utils.sha1("b1\n"), merged.getBlob("b.txt"));
+        assertEquals(Utils.sha1("c1\n"), merged.getBlob("c.txt"));
+        assertEquals("b1\n", Utils.readContentsAsString(b));
+        assertFalse(output.contains("Encountered a merge conflict."));
+    }
+
+    @Test
+    public void testMergeConflict() throws Exception {
+        Repository.init();
+        File a = Utils.join(Repository.CWD, "a.txt");
+        Utils.writeContents(a, "base\n");
+        Repository.add("a.txt");
+        Repository.commit("base");
+        Repository.branch("feature");
+        Repository.checkoutBranch("feature");
+
+        Utils.writeContents(a, "feature\n");
+        Repository.add("a.txt");
+        Repository.commit("feature");
+        String feature = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "feature"));
+        Repository.checkoutBranch("master");
+
+        Utils.writeContents(a, "master\n");
+        Repository.add("a.txt");
+        Repository.commit("master");
+        String master = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        String output = captureMerge("feature");
+        String mergedId = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        Commit merged = Utils.readObject(
+                Utils.join(Repository.COMMITS, mergedId), Commit.class);
+
+        assertEquals(master, merged.getParent());
+        assertEquals(feature, merged.getSecondParent());
+        assertTrue(output.contains("Encountered a merge conflict."));
+        assertEquals("<<<<<<< HEAD\nmaster\n=======\nfeature\n>>>>>>>\n",
+                Utils.readContentsAsString(a));
+    }
+
+    private static String captureMerge(String branch) throws Exception {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        PrintStream original = System.out;
+        System.setOut(new PrintStream(buffer));
+        try {
+            Repository.merge(branch);
+        } finally {
+            System.setOut(original);
+        }
+        return buffer.toString();
+    }
+
     private static String captureStatus() throws Exception {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;

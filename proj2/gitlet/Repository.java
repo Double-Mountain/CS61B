@@ -15,6 +15,8 @@ import java.util.TreeSet;
 import java.util.TreeMap;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Queue;
+import java.util.ArrayDeque;
 
 /** Represents a gitlet repository.
  *  It's a good idea to give a description here of what else this Class
@@ -746,13 +748,13 @@ public class Repository {
      * Merge files from a given branch to the current branch
      * @param branch
      */
-    /*public static void merge(String branch) {
+    public static void merge(String branch) {
         if (!stagingIsEmpty()) {
             System.err.println("You have uncommitted changes.");
             System.exit(0);
         }
-        Commit commit = loadBranchCommit(branch);
-        if (commit == null) {
+        String name = getBranch(branch);
+        if (name == null) {
             System.err.println("A branch with that name does not exist.");
             System.exit(0);
         }
@@ -760,7 +762,69 @@ public class Repository {
             System.err.println("Cannot merge a branch with itself.");
             System.exit(0);
         }
-    }*/
+        Commit commit = loadCommit(name);
+        untrackedOverwrittenCheck(commit);
+
+        String head = getBranch(getHead());
+        String split = getSplitPoint(name);
+        if (split.equals(name)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (split.equals(head)) {
+            reset(name);
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+
+        Commit current = loadCommit(head);
+        Commit ancestor = loadCommit(split);
+        Map<String, String> commitTree = new HashMap<>(commit.getTree());
+        Map<String, String> ancestorTree = new HashMap<>(ancestor.getTree());
+        Map<String, String> currentTree = current.getTree();
+        Map<String, String> changes = new HashMap<>();
+        for (String file : commitTree.keySet()) {
+            if (!commitTree.get(file).equals(ancestorTree.get(file))) {
+                changes.put(file, commitTree.get(file));
+            }
+        }
+        for (String file : ancestorTree.keySet()) {
+            if (!commitTree.containsKey(file)) {
+                changes.put(file, null);
+            }
+        }
+        boolean conflicted = false;
+        for (String file : changes.keySet()) {
+            if (changes.get(file) == null) {
+                if (currentTree.containsKey(file)) {
+                    if (currentTree.get(file).equals(ancestorTree.get(file))) {
+                        restrictedDelete(join(CWD, file));
+                        addToRemoval(file);
+                    } else {
+                        writeConflict(current, commit, file);
+                        conflicted = true;
+                        stage(file);
+                    }
+                }
+            } else if (!changes.get(file).equals(currentTree.get(file))) {
+                if (!currentTree.containsKey(file) && !ancestorTree.containsKey(file) ||
+                currentTree.containsKey(file) && currentTree.get(file).equals(ancestorTree.get(file))) {
+                    writeContents(join(CWD, file), readContents(loadBlob(changes.get(file))));
+                    stage(file);
+                } else {
+                    writeConflict(current, commit, file);
+                    conflicted = true;
+                    stage(file);
+                }
+            }
+        }
+        Commit result = commitAsObject("Merged " + branch + " into " + getHead() + ".");
+        result.setParents(head, name);
+        setBranch(getHead(), saveCommit(result));
+        if (conflicted) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
 
     /**
      * Return whether the staging area is empty
@@ -768,5 +832,56 @@ public class Repository {
      */
     private static boolean stagingIsEmpty() {
         return loadAddition().isEmpty() && loadRemoval().isEmpty();
+    }
+
+    /**
+     * Return the latest common ancestor of the current commit and the given commit
+     * @param commit the SHA-1 of the given commit
+     * @return the SHA-1 of the latest common ancestor
+     */
+    private static String getSplitPoint(String commit) {
+        Queue<String> queue = new ArrayDeque<>();
+        Set<String> visited = new HashSet<>();
+        queue.offer(getBranch(getHead()));
+        queue.offer(commit);
+        String current;
+        while (true) {
+            current = queue.poll();
+            if (visited.contains(current)) {
+                break;
+            }
+            visited.add(current);
+            Commit tmp = loadCommit(current);
+            String parent = tmp.getParent();
+            if (parent != null) {
+                queue.offer(parent);
+            }
+            parent = tmp.getSecondParent();
+            if (parent != null) {
+                queue.offer(parent);
+            }
+        }
+        return current;
+    }
+
+    /**
+     * Write conflict changes of the same file into the file in CWD
+     * @param current the current commit object
+     * @param commit the given commit object
+     * @param file the file name
+     */
+    private static void writeConflict(Commit current, Commit commit, String file)
+    {
+        byte[] currentContent = new byte[0];
+        byte[] commitContent = new byte[0];
+        String currentBlob = current.getBlob(file);
+        String commitBlob = commit.getBlob(file);
+        if (currentBlob != null) {
+            currentContent = readContents(loadBlob(currentBlob));
+        }
+        if (commitBlob != null) {
+            commitContent = readContents(loadBlob(commitBlob));
+        }
+        writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n", commitContent, ">>>>>>>\n");
     }
 }
