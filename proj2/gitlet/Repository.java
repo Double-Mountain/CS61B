@@ -81,15 +81,38 @@ public class Repository {
 
     /**
      * Load the commit as an object
-     * @param name the SHA-1 of the commit
-     * @return an commit object
+     * @param name the SHA-1 of the commit, or a unique abbreviation of it
+     * @return an commit object, null if none or multiple commits can be found under the given name or the name itself is null
      */
     private static Commit loadCommit(String name) {
-        return readObject(join(COMMITS, name), Commit.class);
+        if (name == null) {
+            return null;
+        }
+        if (name.length() != UID_LENGTH) {
+            List<String> commits = plainFilenamesWithoutOrder(COMMITS);
+            String target = null;
+            for (String file : commits) {
+                if (file.startsWith(name)) {
+                    if (target != null) {
+                        return null;
+                    }
+                    target = file;
+                }
+            }
+            if (target == null) {
+                return null;
+            }
+            name = target;
+        }
+        File file = join(COMMITS, name);
+        if (!file.exists()) {
+            return null;
+        }
+        return readObject(file, Commit.class);
     }
 
     /**
-     * Load the commit that a branch points to as an object
+     * Load the commit that a branch points to as an object, null if the given branch does not exist
      * @param branch the branch name
      * @return an commit object
      */
@@ -131,7 +154,7 @@ public class Repository {
     }
 
     /**
-     * Return the commit that a certain branch points to
+     * Return the commit that a certain branch points to, null if the branch does not exist
      * @param branch the name of the branch
      * @return the SHA-1 of the commit
      */
@@ -260,6 +283,7 @@ public class Repository {
         writeContents(join(BLOBS, blob), contents);
         return blob;
     }
+
     /**
      * Commit the staging files.
      * @param message the commit message
@@ -548,5 +572,92 @@ public class Repository {
             }
         }
         return untracked;
+    }
+
+    /**
+     * Put the given file of the given commit in the working directory
+     * @param commit the name of the commit
+     * @param file the name of the file
+     */
+    public static void checkoutCommitFile(String commit, String file) {
+        checkoutCommitFile(loadCommit(commit), file);
+    }
+
+    /**
+     * Put the given file of the given commit in the working directory
+     * @param commit the given commit object
+     * @param file the name of the file
+     */
+    private static void checkoutCommitFile(Commit commit, String file) {
+        if (commit == null) {
+            System.err.println("No commit with that id exists.");
+            System.exit(0);
+        }
+        String name = commit.getBlob(file);
+        if (name == null) {
+            System.err.println("File does not exist in that commit.");
+            System.exit(0);
+        }
+        writeContents(join(CWD, file), readContents(loadBlob(name)));
+    }
+
+    /**
+     * Return a file object of a blob of the given name
+     * @param name the SHA-1 of the blob
+     * @return a file object
+     */
+    private static File loadBlob(String name) {
+        return join(BLOBS, name);
+    }
+
+    /**
+     * Put the given file of the current commit in the working directory
+     * @param file the name of the file
+     */
+    public static void checkoutFile(String file) {
+        checkoutCommitFile(loadHeadCommit(), file);
+    }
+
+    /**
+     * Move from the current branch to the given branch and clear the staging area
+     * @param branch the name of the given branch
+     */
+    public static void checkoutBranch(String branch) {
+        Commit source = loadBranchCommit(branch);
+        if (source == null) {
+            System.err.println("No such branch exists.");
+            System.exit(0);
+        }
+        if (branch.equals(getHead())) {
+            System.err.println("No need to checkout the current branch.");
+            System.exit(0);
+        }
+        Commit current = loadHeadCommit();
+        Set<String> tracked = new HashSet<>(current.getTree().keySet());
+        Set<String> blobs = source.getTree().keySet();
+        for (String file : blobs) {
+            if (!tracked.contains(file) && join(CWD, file).exists()) {
+                System.err.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+        for (String file : tracked) {
+            restrictedDelete(join(CWD, file));
+        }
+        for (String file : blobs) {
+            checkoutCommitFile(source, file);
+        }
+        clearStaging();
+        moveHead(branch);
+    }
+
+    /**
+     * Clear the staging area
+     */
+    private static void clearStaging() {
+        for (String file : getStagedFileSet()) {
+            unstage(file);
+        }
+        clearRemoval();
     }
 }

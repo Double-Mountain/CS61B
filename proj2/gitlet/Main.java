@@ -111,6 +111,23 @@ public class Main {
                 }
                 Repository.status();
                 break;
+            case "checkout":
+                // handle the 'checkout' command
+                if (!Repository.GITLET_DIR.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                if (args.length == 3 && args[1].equals("--")) {
+                    Repository.checkoutFile(args[2]);
+                } else if (args.length == 4 && args[2].equals("--")) {
+                    Repository.checkoutCommitFile(args[1], args[3]);
+                } else if (args.length == 2) {
+                    Repository.checkoutBranch(args[1]);
+                } else {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }
