@@ -303,6 +303,15 @@ public class Repository {
      * @param message the commit message
      */
     public static void commit(String message) {
+        setBranch(getHead(), saveCommit(commitAsObject(message)));
+    }
+
+    /**
+     * Commit the staging files without saving and return a Commit object
+     * @param message the commit message
+     * @return a commit object
+     */
+    private static Commit commitAsObject(String message) {
         if (message.isBlank()) {
             System.err.println("Please enter a commit message.");
             System.exit(0);
@@ -326,8 +335,7 @@ public class Repository {
             commit.untrackBlob(name);
         }
         clearRemoval();
-        String name = saveCommit(commit);
-        setBranch(branch, name);
+        return commit;
     }
 
     /**
