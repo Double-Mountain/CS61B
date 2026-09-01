@@ -316,12 +316,12 @@ public class Repository {
             System.err.println("Please enter a commit message.");
             System.exit(0);
         }
-        Set<String> stagedFiles = getStagedFileSet();
-        HashSet<String> removal = loadRemoval();
-        if (stagedFiles.isEmpty() && removal.isEmpty()) {
+        if (stagingIsEmpty()) {
             System.err.println("No changes added to the commit.");
             System.exit(0);
         }
+        Set<String> stagedFiles = getStagedFileSet();
+        HashSet<String> removal = loadRemoval();
         String branch = getHead();
         Commit commit = loadHeadCommit();
         commit.setMetadata(message, new Date());
@@ -664,15 +664,9 @@ public class Repository {
      * @param commit the commit object to move to
      */
     private static void moveToCommit(Commit commit) {
-        Commit current = loadHeadCommit();
-        Set<String> tracked = new HashSet<>(current.getTree().keySet());
+        untrackedOverwrittenCheck(commit);
+        Set<String> tracked = loadHeadCommit().getTree().keySet();
         Set<String> blobs = commit.getTree().keySet();
-        for (String file : blobs) {
-            if (!tracked.contains(file) && join(CWD, file).exists()) {
-                System.err.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                System.exit(0);
-            }
-        }
         for (String file : tracked) {
             restrictedDelete(join(CWD, file));
         }
@@ -680,6 +674,21 @@ public class Repository {
             checkoutCommitFile(commit, file);
         }
         clearStaging();
+    }
+
+    /**
+     * Exit if there is an untracked file will be overwritten by the commit
+     * @param commit the commit object that might overwrite an untracked file
+     */
+    private static void untrackedOverwrittenCheck(Commit commit) {
+        Set<String> tracked = loadHeadCommit().getTree().keySet();
+        Set<String> blobs = commit.getTree().keySet();
+        for (String file : blobs) {
+            if (!tracked.contains(file) && join(CWD, file).exists()) {
+                System.err.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
     }
 
     /**
@@ -731,5 +740,33 @@ public class Repository {
         }
         moveToCommit(loadCommit(commit));
         setBranch(getHead(), commit);
+    }
+
+    /**
+     * Merge files from a given branch to the current branch
+     * @param branch
+     */
+    /*public static void merge(String branch) {
+        if (!stagingIsEmpty()) {
+            System.err.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+        Commit commit = loadBranchCommit(branch);
+        if (commit == null) {
+            System.err.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+        if (branch.equals(getHead())) {
+            System.err.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+    }*/
+
+    /**
+     * Return whether the staging area is empty
+     * @return a boolean value
+     */
+    private static boolean stagingIsEmpty() {
+        return loadAddition().isEmpty() && loadRemoval().isEmpty();
     }
 }
