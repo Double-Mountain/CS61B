@@ -85,11 +85,29 @@ public class Repository {
      * @return an commit object, null if none or multiple commits can be found under the given name or the name itself is null
      */
     private static Commit loadCommit(String name) {
+        name = fullCommitName(name);
         if (name == null) {
             return null;
         }
-        if (name.length() != UID_LENGTH) {
-            List<String> commits = plainFilenamesWithoutOrder(COMMITS);
+        File file = join(COMMITS, name);
+        return readObject(file, Commit.class);
+    }
+
+    /**
+     * Get a full and existed commit name out of a given name
+     * @param name the given commit name
+     * @return the full commit name, null if none or multiple commits can be found under the given name or the name itself is null
+     */
+    private static String fullCommitName(String name) {
+        if (name == null) {
+            return null;
+        }
+        if (name.length() == UID_LENGTH) {
+            if (!join(COMMITS, name).exists()) {
+                name = null;
+            }
+        } else {
+            List<String> commits = getCommitList();
             String target = null;
             for (String file : commits) {
                 if (file.startsWith(name)) {
@@ -104,11 +122,7 @@ public class Repository {
             }
             name = target;
         }
-        File file = join(COMMITS, name);
-        if (!file.exists()) {
-            return null;
-        }
-        return readObject(file, Commit.class);
+        return name;
     }
 
     /**
@@ -623,8 +637,8 @@ public class Repository {
      * @param branch the name of the given branch
      */
     public static void checkoutBranch(String branch) {
-        Commit source = loadBranchCommit(branch);
-        if (source == null) {
+        Commit commit = loadBranchCommit(branch);
+        if (commit == null) {
             System.err.println("No such branch exists.");
             System.exit(0);
         }
@@ -632,9 +646,19 @@ public class Repository {
             System.err.println("No need to checkout the current branch.");
             System.exit(0);
         }
+        moveToCommit(commit);
+        moveHead(branch);
+    }
+
+    /**
+     * Move from the current branch to the given commit without moving any branch or head pointer
+     * Clear the staging area
+     * @param commit the commit object to move to
+     */
+    private static void moveToCommit(Commit commit) {
         Commit current = loadHeadCommit();
         Set<String> tracked = new HashSet<>(current.getTree().keySet());
-        Set<String> blobs = source.getTree().keySet();
+        Set<String> blobs = commit.getTree().keySet();
         for (String file : blobs) {
             if (!tracked.contains(file) && join(CWD, file).exists()) {
                 System.err.println("There is an untracked file in the way; delete it, or add and commit it first.");
@@ -645,10 +669,9 @@ public class Repository {
             restrictedDelete(join(CWD, file));
         }
         for (String file : blobs) {
-            checkoutCommitFile(source, file);
+            checkoutCommitFile(commit, file);
         }
         clearStaging();
-        moveHead(branch);
     }
 
     /**
@@ -686,5 +709,19 @@ public class Repository {
             System.err.println("A branch with that name does not exist.");
             System.exit(0);
         }
+    }
+
+    /**
+     * Checkout a given commit and move the current branch head to it
+     * @param commit the SHA-1 of the given commit
+     */
+    public static void reset(String commit) {
+        commit = fullCommitName(commit);
+        if (commit == null) {
+            System.err.println("No commit with that id exists.");
+            System.exit(0);
+        }
+        moveToCommit(loadCommit(commit));
+        setBranch(getHead(), commit);
     }
 }

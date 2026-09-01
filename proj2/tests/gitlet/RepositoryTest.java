@@ -489,6 +489,52 @@ public class RepositoryTest {
         assertTrue(Utils.plainFilenamesIn(Repository.STAGING).isEmpty());
     }
 
+    @Test
+    public void testResetMovesBranchToOldCommit() throws Exception {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "v1");
+        Repository.add("wug.txt");
+        Repository.commit("v1");
+        String first = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        Utils.writeContents(wug, "v2");
+        Repository.add("wug.txt");
+        Repository.commit("v2");
+
+        Utils.writeContents(wug, "v3");
+        Repository.add("wug.txt");
+
+        Repository.reset(first);
+
+        assertEquals(first, Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master")));
+        assertEquals("v1", Utils.readContentsAsString(wug));
+        assertTrue(loadAddition().isEmpty());
+        assertTrue(loadRemoval().isEmpty());
+        assertTrue(Utils.plainFilenamesIn(Repository.STAGING).isEmpty());
+    }
+
+    @Test
+    public void testResetAcceptsAbbreviation() throws Exception {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "v1");
+        Repository.add("wug.txt");
+        Repository.commit("v1");
+        String first = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+        Utils.writeContents(wug, "v2");
+        Repository.add("wug.txt");
+        Repository.commit("v2");
+
+        Repository.reset(first.substring(0, 16));
+
+        assertEquals(first, Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master")));
+        assertEquals("v1", Utils.readContentsAsString(wug));
+    }
+
     private static String captureStatus() throws Exception {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;

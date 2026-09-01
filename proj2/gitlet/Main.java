@@ -152,6 +152,18 @@ public class Main {
                 }
                 Repository.rmBranch(args[1]);
                 break;
+            case "reset":
+                // handel the 'reset [commit id]' command
+                if (args.length != 2) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.GITLET_DIR.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.reset(args[1]);
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }
