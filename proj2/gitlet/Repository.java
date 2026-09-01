@@ -660,4 +660,12 @@ public class Repository {
         }
         clearRemoval();
     }
+
+    public static void branch(String branch) {
+        if (getBranch(branch) != null) {
+            System.err.println("A branch with that name already exists.");
+            System.exit(0);
+        }
+        setBranch(branch, getBranch(getHead()));
+    }
 }

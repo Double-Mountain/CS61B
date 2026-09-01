@@ -128,6 +128,18 @@ public class Main {
                     System.exit(0);
                 }
                 break;
+            case "branch":
+                // handel the 'branch [branch name]' command
+                if (args.length != 2) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.GITLET_DIR.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.branch(args[1]);
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }

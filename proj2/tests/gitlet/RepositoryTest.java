@@ -433,15 +433,30 @@ public class RepositoryTest {
     }
 
     @Test
+    public void testBranchPointsAtHeadCommit() throws Exception {
+        Repository.init();
+        File wug = Utils.join(Repository.CWD, "wug.txt");
+        Utils.writeContents(wug, "v1");
+        Repository.add("wug.txt");
+        Repository.commit("v1");
+        String head = Utils.readContentsAsString(
+                Utils.join(Repository.BRANCHES, "master"));
+
+        Repository.branch("feature");
+
+        File feature = Utils.join(Repository.BRANCHES, "feature");
+        assertTrue(feature.isFile());
+        assertEquals(head, Utils.readContentsAsString(feature));
+    }
+
+    @Test
     public void testCheckoutBranchSwitchesHeadAndFiles() throws Exception {
         Repository.init();
         File wug = Utils.join(Repository.CWD, "wug.txt");
         Utils.writeContents(wug, "v1");
         Repository.add("wug.txt");
         Repository.commit("v1");
-        String first = Utils.readContentsAsString(
-                Utils.join(Repository.BRANCHES, "master"));
-        Utils.writeContents(Utils.join(Repository.BRANCHES, "other"), first);
+        Repository.branch("other");
 
         Utils.writeContents(wug, "v2");
         Repository.add("wug.txt");
