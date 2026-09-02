@@ -52,7 +52,7 @@ public class Main {
                 Repository.commit(args[1]);
                 break;
             case "rm":
-                // handel the 'rm [file name]' command
+                // handle the 'rm [file name]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -64,7 +64,7 @@ public class Main {
                 Repository.rm(args[1]);
                 break;
             case "log":
-                // handel the 'log' command
+                // handle the 'log' command
                 if (args.length != 1) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -76,7 +76,7 @@ public class Main {
                 Repository.log();
                 break;
             case "global-log":
-                // handel the 'global-log' command
+                // handle the 'global-log' command
                 if (args.length != 1) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -88,7 +88,7 @@ public class Main {
                 Repository.globalLog();
                 break;
             case "find":
-                // handel the 'find [commit message]' command
+                // handle the 'find [commit message]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -100,7 +100,7 @@ public class Main {
                 Repository.find(args[1]);
                 break;
             case "status":
-                // handel the 'status' command
+                // handle the 'status' command
                 if (args.length != 1) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -129,7 +129,7 @@ public class Main {
                 }
                 break;
             case "branch":
-                // handel the 'branch [branch name]' command
+                // handle the 'branch [branch name]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -141,7 +141,7 @@ public class Main {
                 Repository.branch(args[1]);
                 break;
             case "rm-branch":
-                // handel the 'rm-branch [branch name]' command
+                // handle the 'rm-branch [branch name]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -153,7 +153,7 @@ public class Main {
                 Repository.rmBranch(args[1]);
                 break;
             case "reset":
-                // handel the 'reset [commit id]' command
+                // handle the 'reset [commit id]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -165,7 +165,7 @@ public class Main {
                 Repository.reset(args[1]);
                 break;
             case "merge":
-                // handel the 'merge [branch name]' command
+                // handle the 'merge [branch name]' command
                 if (args.length != 2) {
                     System.err.println(OPERANDS);
                     System.exit(0);
@@ -175,6 +175,18 @@ public class Main {
                     System.exit(0);
                 }
                 Repository.merge(args[1]);
+                break;
+            case "add-remote":
+                // handle 'add-remote [remote name] [name of remote directory]/.gitlet'
+                if (args.length != 3) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.gitlet_dir.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.addRemote(args[1], args[2]);
                 break;
             default:
                 System.err.println("No command with that name exists.");

@@ -961,4 +961,29 @@ public class Repository {
         writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n", 
         commitContent, ">>>>>>>\n");
     }
+
+    /**
+     * Add a remote directory
+     * @param name the name of the remote directory
+     * @param directory the path of the remote directory
+     */
+    public static void addRemote(String name, String path) {
+        if (loadRemote(name) != null) {
+            System.err.println("A remote with that name already exists.");
+            System.exit(0);
+        }
+        writeObject(join(remotes(), name), new File(path.replace("/", File.separator)));
+    }
+
+    /**
+     * Return a remote directory as a file object, return null if it does not exist
+     * @return a file object
+     */
+    private static File loadRemote(String name) {
+        File remote = join(remotes(), name);
+        if (!remote.exists()) {
+            return null;
+        }
+        return readObject(remote, File.class);
+    }
 }
