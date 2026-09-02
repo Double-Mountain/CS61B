@@ -651,6 +651,20 @@ public class RepositoryTest {
         assertEquals(new File(path), Utils.readObject(saved, File.class));
     }
 
+    @Test
+    public void testRmRemoteDeletesRemote() throws Exception {
+        Repository.init();
+        String path = Utils.join(Repository.CWD, "remote-repo", ".gitlet").getPath();
+        Repository.addRemote("origin", path);
+        File saved = Utils.join(
+                Utils.join(Repository.gitlet_dir, "remotes"), "origin");
+        assertTrue(saved.isFile());
+
+        Repository.rmRemote("origin");
+
+        assertFalse(saved.exists());
+    }
+
     private static String captureMerge(String branch) throws Exception {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;

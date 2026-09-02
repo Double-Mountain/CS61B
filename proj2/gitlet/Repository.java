@@ -986,4 +986,12 @@ public class Repository {
         }
         return readObject(remote, File.class);
     }
+
+    public static void rmRemote(String name) {
+        if (loadRemote(name) == null) {
+            System.err.println("A remote with that name does not exist.");
+            System.exit(0);
+        }
+        join(remotes(), name).delete();
+    }
 }

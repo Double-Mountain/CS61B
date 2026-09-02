@@ -188,6 +188,18 @@ public class Main {
                 }
                 Repository.addRemote(args[1], args[2]);
                 break;
+            case "rm-remote":
+                // handle the 'rm-remote [remote name]' command
+                if (args.length != 2) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.gitlet_dir.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.rmRemote(args[1]);
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }
