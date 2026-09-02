@@ -34,11 +34,11 @@ public class RepositoryTest {
         assertTrue(Utils.join(Repository.gitlet_dir, "commits").isDirectory());
         assertTrue(Utils.join(Repository.gitlet_dir, "blobs").isDirectory());
         assertTrue(Utils.join(Repository.gitlet_dir, "staging").isDirectory());
-        assertTrue(Utils.join(Repository.gitlet_dir, "branches").isDirectory());
+        assertTrue(Utils.join(Repository.gitlet_dir, "branches").isFile());
         assertTrue(Utils.join(Repository.gitlet_dir, "head").isFile());
         assertTrue(Utils.join(Repository.gitlet_dir, "removal").isFile());
         assertTrue(Utils.join(Repository.gitlet_dir, "addition").isFile());
-        assertTrue(Utils.join(Repository.gitlet_dir, "remotes").isDirectory());
+        assertTrue(Utils.join(Repository.gitlet_dir, "remotes").isFile());
     }
 
     @Test
@@ -60,10 +60,8 @@ public class RepositoryTest {
 
         String expected = Utils.sha1(
                 Utils.serialize(new Commit("initial commit", new Date(0), null)));
-        File master = Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master");
 
-        assertTrue(master.isFile());
-        assertEquals(expected, Utils.readContentsAsString(master));
+        assertEquals(expected, branchCommit("master"));
     }
 
     @Test
@@ -104,8 +102,7 @@ public class RepositoryTest {
     @Test
     public void testCommitCreatesCommitAndClearsStaging() throws Exception {
         Repository.init();
-        String initial = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String initial = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "hello");
         Repository.add("wug.txt");
@@ -116,8 +113,7 @@ public class RepositoryTest {
         assertTrue(Utils.plainFilenamesIn(Utils.join(Repository.gitlet_dir, "staging")).isEmpty());
         assertTrue(loadAddition().isEmpty());
 
-        String newCommitId = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String newCommitId = branchCommit("master");
         assertFalse(initial.equals(newCommitId));
 
         Commit commit = Utils.readObject(
@@ -180,8 +176,7 @@ public class RepositoryTest {
         Repository.rm("wug.txt");
         Repository.commit("removed wug");
 
-        String newCommitId = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String newCommitId = branchCommit("master");
         Commit commit = Utils.readObject(
                 Utils.join(Utils.join(Repository.gitlet_dir, "commits"), newCommitId), Commit.class);
         assertNull(commit.getBlob("wug.txt"));
@@ -191,20 +186,17 @@ public class RepositoryTest {
     @Test
     public void testLogPrintsCommitsNewestFirst() throws Exception {
         Repository.init();
-        String initial = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String initial = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
         Repository.add("wug.txt");
         Repository.commit("first message");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v2");
         Repository.add("wug.txt");
         Repository.commit("second message");
-        String second = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String second = branchCommit("master");
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
@@ -227,20 +219,17 @@ public class RepositoryTest {
     @Test
     public void testGlobalLogPrintsAllCommits() throws Exception {
         Repository.init();
-        String initial = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String initial = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
         Repository.add("wug.txt");
         Repository.commit("first message");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v2");
         Repository.add("wug.txt");
         Repository.commit("second message");
-        String second = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String second = branchCommit("master");
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
@@ -268,20 +257,17 @@ public class RepositoryTest {
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v1");
         Repository.add("wug.txt");
         Repository.commit("first message");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v2");
         Repository.add("wug.txt");
         Repository.commit("second message");
-        String second = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String second = branchCommit("master");
 
         Utils.writeContents(Utils.join(Repository.CWD, "wug.txt"), "v3");
         Repository.add("wug.txt");
         Repository.commit("first message");
-        String third = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String third = branchCommit("master");
 
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         PrintStream original = System.out;
@@ -334,10 +320,8 @@ public class RepositoryTest {
     @Test
     public void testStatusListsBranchesInSortedOrder() throws Exception {
         Repository.init();
-        String master = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
-        Utils.writeContents(Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "zeta"), master);
-        Utils.writeContents(Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "alpha"), master);
+        Repository.branch("zeta");
+        Repository.branch("alpha");
 
         String output = captureStatus();
 
@@ -404,8 +388,7 @@ public class RepositoryTest {
         Utils.writeContents(wug, "v1");
         Repository.add("wug.txt");
         Repository.commit("first");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
         Utils.writeContents(wug, "v2");
         Repository.add("wug.txt");
         Repository.commit("second");
@@ -422,8 +405,7 @@ public class RepositoryTest {
         Utils.writeContents(wug, "v1");
         Repository.add("wug.txt");
         Repository.commit("first");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
         Utils.writeContents(wug, "v2");
         Repository.add("wug.txt");
         Repository.commit("second");
@@ -440,14 +422,12 @@ public class RepositoryTest {
         Utils.writeContents(wug, "v1");
         Repository.add("wug.txt");
         Repository.commit("v1");
-        String head = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String head = branchCommit("master");
 
         Repository.branch("feature");
 
-        File feature = Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "feature");
-        assertTrue(feature.isFile());
-        assertEquals(head, Utils.readContentsAsString(feature));
+        assertTrue(loadBranchesMap().containsKey("feature"));
+        assertEquals(head, branchCommit("feature"));
     }
 
     @Test
@@ -457,12 +437,11 @@ public class RepositoryTest {
         Repository.add("wug.txt");
         Repository.commit("v1");
         Repository.branch("feature");
-        File feature = Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "feature");
-        assertTrue(feature.isFile());
+        assertTrue(loadBranchesMap().containsKey("feature"));
 
         Repository.rmBranch("feature");
 
-        assertFalse(feature.exists());
+        assertFalse(loadBranchesMap().containsKey("feature"));
     }
 
     @Test
@@ -497,8 +476,7 @@ public class RepositoryTest {
         Utils.writeContents(wug, "v1");
         Repository.add("wug.txt");
         Repository.commit("v1");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
         Utils.writeContents(wug, "v2");
         Repository.add("wug.txt");
         Repository.commit("v2");
@@ -508,8 +486,7 @@ public class RepositoryTest {
 
         Repository.reset(first);
 
-        assertEquals(first, Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master")));
+        assertEquals(first, branchCommit("master"));
         assertEquals("v1", Utils.readContentsAsString(wug));
         assertTrue(loadAddition().isEmpty());
         assertTrue(loadRemoval().isEmpty());
@@ -523,16 +500,14 @@ public class RepositoryTest {
         Utils.writeContents(wug, "v1");
         Repository.add("wug.txt");
         Repository.commit("v1");
-        String first = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String first = branchCommit("master");
         Utils.writeContents(wug, "v2");
         Repository.add("wug.txt");
         Repository.commit("v2");
 
         Repository.reset(first.substring(0, 16));
 
-        assertEquals(first, Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master")));
+        assertEquals(first, branchCommit("master"));
         assertEquals("v1", Utils.readContentsAsString(wug));
     }
 
@@ -549,14 +524,12 @@ public class RepositoryTest {
         Utils.writeContents(wug, "v2\n");
         Repository.add("wug.txt");
         Repository.commit("v2");
-        String feature = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "feature"));
+        String feature = branchCommit("feature");
         Repository.checkoutBranch("master");
 
         String output = captureMerge("feature");
 
-        assertEquals(feature, Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master")));
+        assertEquals(feature, branchCommit("master"));
         assertEquals("v2\n", Utils.readContentsAsString(wug));
         assertTrue(output.contains("Current branch fast-forwarded."));
     }
@@ -575,20 +548,17 @@ public class RepositoryTest {
         Utils.writeContents(b, "b1\n");
         Repository.add("b.txt");
         Repository.commit("feature b");
-        String feature = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "feature"));
+        String feature = branchCommit("feature");
         Repository.checkoutBranch("master");
 
         File c = Utils.join(Repository.CWD, "c.txt");
         Utils.writeContents(c, "c1\n");
         Repository.add("c.txt");
         Repository.commit("master c");
-        String master = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String master = branchCommit("master");
 
         String output = captureMerge("feature");
-        String mergedId = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String mergedId = branchCommit("master");
         Commit merged = Utils.readObject(
                 Utils.join(Utils.join(Repository.gitlet_dir, "commits"), mergedId), Commit.class);
 
@@ -615,19 +585,16 @@ public class RepositoryTest {
         Utils.writeContents(a, "feature\n");
         Repository.add("a.txt");
         Repository.commit("feature");
-        String feature = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "feature"));
+        String feature = branchCommit("feature");
         Repository.checkoutBranch("master");
 
         Utils.writeContents(a, "master\n");
         Repository.add("a.txt");
         Repository.commit("master");
-        String master = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String master = branchCommit("master");
 
         String output = captureMerge("feature");
-        String mergedId = Utils.readContentsAsString(
-                Utils.join(Utils.join(Repository.gitlet_dir, "branches"), "master"));
+        String mergedId = branchCommit("master");
         Commit merged = Utils.readObject(
                 Utils.join(Utils.join(Repository.gitlet_dir, "commits"), mergedId), Commit.class);
 
@@ -645,10 +612,8 @@ public class RepositoryTest {
 
         Repository.addRemote("origin", path);
 
-        File saved = Utils.join(
-                Utils.join(Repository.gitlet_dir, "remotes"), "origin");
-        assertTrue(saved.isFile());
-        assertEquals(new File(path), Utils.readObject(saved, File.class));
+        assertTrue(loadRemotesMap().containsKey("origin"));
+        assertEquals(new File(path), loadRemotesMap().get("origin"));
     }
 
     @Test
@@ -656,13 +621,11 @@ public class RepositoryTest {
         Repository.init();
         String path = Utils.join(Repository.CWD, "remote-repo", ".gitlet").getPath();
         Repository.addRemote("origin", path);
-        File saved = Utils.join(
-                Utils.join(Repository.gitlet_dir, "remotes"), "origin");
-        assertTrue(saved.isFile());
+        assertTrue(loadRemotesMap().containsKey("origin"));
 
         Repository.rmRemote("origin");
 
-        assertFalse(saved.exists());
+        assertFalse(loadRemotesMap().containsKey("origin"));
     }
 
     private static String captureMerge(String branch) throws Exception {
@@ -695,6 +658,18 @@ public class RepositoryTest {
 
     private static HashMap<String, String> loadAddition() {
         return Utils.readObject(Utils.join(Repository.gitlet_dir, "addition"), HashMap.class);
+    }
+
+    private static HashMap<String, String> loadBranchesMap() {
+        return Utils.readObject(Utils.join(Repository.gitlet_dir, "branches"), HashMap.class);
+    }
+
+    private static HashMap<String, File> loadRemotesMap() {
+        return Utils.readObject(Utils.join(Repository.gitlet_dir, "remotes"), HashMap.class);
+    }
+
+    private static String branchCommit(String branch) {
+        return loadBranchesMap().get(branch);
     }
 
     private static Object field(Object obj, String name) throws Exception {

@@ -125,12 +125,14 @@ public class Repository {
         commits().mkdir();
         blobs().mkdir();
         staging().mkdir();
-        branches().mkdir();
-        remotes().mkdir();
+        HashMap<String, File> remotes = new HashMap();
+        saveRemotes(remotes);
         HashSet<String> removal = new HashSet<>();
-        writeObject(removal(), removal);
+        saveRemoval(removal);
         HashMap<String, String> addition = new HashMap<>();
-        writeObject(addition(), addition);
+        saveAddition(addition);
+        HashMap<String, String> branches = new HashMap<>();
+        saveBranches(branches);
         String first = saveCommit(new Commit("initial commit", new Date(0), null));
         setBranch("master", first);
         moveHead("master");
@@ -233,12 +235,30 @@ public class Repository {
     }
 
     /**
+     * Load branches as a hash map
+     * @return a hash map object
+     */
+    private static HashMap<String, String> loadBranches() {
+        return readObject(branches(), HashMap.class);
+    }
+
+    /**
+     * Save a hash map as branches
+     * @param branches a hash map object
+     */
+    private static void saveBranches(HashMap<String, String> branches) {
+        writeObject(branches(), branches);
+    }
+
+    /**
      * Make a certain branch point to a commit. Create the branch if it does not exist.
      * @param branch the name of the branch
      * @param commit the SHA-1 of the commit
      */
     private static void setBranch(String branch, String commit) {
-        writeContents(join(branches(), branch), commit);
+        HashMap<String, String> branches = loadBranches();
+        branches.put(branch, commit);
+        saveBranches(branches);
     }
 
     /**
@@ -247,11 +267,7 @@ public class Repository {
      * @return the SHA-1 of the commit
      */
     private static String getBranch(String branch) {
-        File file = join(branches(), branch);
-        if (!file.exists()) {
-            return null;
-        }
-        return readContentsAsString(file);
+        return loadBranches().get(branch);
     }
 
     /**
@@ -596,7 +612,9 @@ public class Repository {
      * @return a list of strings
      */
     private static List<String> getSortedBranchList() {
-        return plainFilenamesIn(branches());
+        List<String> branches = new ArrayList<>(loadBranches().keySet());
+        branches.sort(Comparator.naturalOrder());
+        return branches;
     }
 
     /**
@@ -799,10 +817,12 @@ public class Repository {
             System.err.println("Cannot remove the current branch.");
             System.exit(0);
         }
-        if (!join(branches(), branch).delete()) {
+        HashMap<String, String> branches = loadBranches();
+        if (branches.remove(branch) == null) {
             System.err.println("A branch with that name does not exist.");
             System.exit(0);
         }
+        saveBranches(branches);
     }
 
     /**
@@ -963,28 +983,42 @@ public class Repository {
     }
 
     /**
+     * Load the remotes as a hash map
+     * @return a hash map object
+     */
+    private static HashMap<String, File> loadRemotes() {
+        return readObject(remotes(), HashMap.class);
+    }
+
+    /**
+     * Save a hash map to remotes
+     * @param remotes a hash map object
+     */
+    private static void saveRemotes(HashMap<String, File> remotes) {
+        writeObject(remotes(), remotes);
+    }
+
+    /**
      * Add a remote directory
      * @param name the name of the remote directory
      * @param directory the path of the remote directory
      */
     public static void addRemote(String name, String path) {
-        if (loadRemote(name) != null) {
+        HashMap<String, File> remotes = loadRemotes();
+        if (remotes.get(name) != null) {
             System.err.println("A remote with that name already exists.");
             System.exit(0);
         }
-        writeObject(join(remotes(), name), new File(path.replace("/", File.separator)));
+        remotes.put(name, new File(path.replace("/", File.separator)));
+        saveRemotes(remotes);
     }
 
     /**
      * Return a remote directory as a file object, return null if it does not exist
      * @return a file object
      */
-    private static File loadRemote(String name) {
-        File remote = join(remotes(), name);
-        if (!remote.exists()) {
-            return null;
-        }
-        return readObject(remote, File.class);
+    private static File getRemote(String name) {
+        return loadRemotes().get(name);
     }
 
     /**
@@ -992,11 +1026,13 @@ public class Repository {
      * @param name the name of the remote directory
      */
     public static void rmRemote(String name) {
-        if (loadRemote(name) == null) {
+        HashMap<String, File> remotes = loadRemotes();
+        if (remotes.get(name) == null) {
             System.err.println("A remote with that name does not exist.");
             System.exit(0);
         }
-        join(remotes(), name).delete();
+        remotes.remove(name);
+        saveRemotes(remotes);
     }
 
     public static void push(String remote, String branch) {
@@ -1010,7 +1046,7 @@ public class Repository {
             System.exit(0);
         }
         String latest = getBranch(getHead());
-        transport(gitlet_dir, loadRemote(remote), latest);
+        transport(gitlet_dir, getRemote(remote), latest);
         changeToRemote(remote);
         setBranch(branch, latest);
         moveHead(branch);
@@ -1029,7 +1065,7 @@ public class Repository {
      */
     private static void changeToRemote(String name) {
         backToLocal();
-        changeDirectory(loadRemote(name));
+        changeDirectory(getRemote(name));
     }
 
     /**
@@ -1037,7 +1073,7 @@ public class Repository {
      * @param name the name of the remote directory
      */
     private static void checkRemoteExists(String name) {
-        File remote = loadRemote(name);
+        File remote = getRemote(name);
         if (remote == null || !remote.exists()) {
             System.err.println("Remote directory not found.");
             System.exit(0);
@@ -1092,5 +1128,23 @@ public class Repository {
      */
     private static File blobsFrom(File directory) {
         return join(directory, "blobs");
+    }
+
+    /**
+     * Bring down the given branch from the given remote
+     * @param remote the given remote
+     * @param branch the given branch
+     */
+    public static void fetch(String remote, String branch) {
+        checkRemoteExists(remote);
+        changeToRemote(remote);
+        if (getBranch(branch) == null) {
+            System.err.println("That remote does not have that branch.");
+            System.exit(0);
+        }
+        String commit = getBranch(branch);
+        backToLocal();
+        transport(getRemote(remote), gitlet_dir, commit);
+        setBranch(remote + "/" + branch, commit);
     }
 }

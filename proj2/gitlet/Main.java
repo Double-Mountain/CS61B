@@ -212,6 +212,18 @@ public class Main {
                 }
                 Repository.push(args[1], args[2]);
                 break;
+            case "fetch":
+                // handle the 'fetch [remote name] [remote branch name]' command
+                if (args.length != 3) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.gitlet_dir.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.fetch(args[1], args[2]);
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }
