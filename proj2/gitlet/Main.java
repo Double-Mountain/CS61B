@@ -32,7 +32,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -45,7 +45,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -57,7 +57,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -69,7 +69,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -81,7 +81,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -93,7 +93,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -105,7 +105,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -113,7 +113,7 @@ public class Main {
                 break;
             case "checkout":
                 // handle the 'checkout' command
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -134,7 +134,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -146,7 +146,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -158,7 +158,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -170,7 +170,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -182,7 +182,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -194,7 +194,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -206,7 +206,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -218,7 +218,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }
@@ -230,7 +230,7 @@ public class Main {
                     System.err.println(OPERANDS);
                     System.exit(0);
                 }
-                if (!Repository.gitlet_dir.exists()) {
+                if (!Repository.getGitletDir().exists()) {
                     System.err.println(NO_DIRECTORY);
                     System.exit(0);
                 }

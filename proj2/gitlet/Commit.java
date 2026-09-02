@@ -68,9 +68,9 @@ public class Commit implements Serializable {
      * @param message the message of the commit
      * @param timestamp the time stamp of the commit
      */
-    public void setMetadata(String message, Date timestamp) {
-        this.message = message;
-        this.timestamp = timestamp;
+    public void setMetadata(String _message, Date _timestamp) {
+        message = _message;
+        timestamp = _timestamp;
     }
 
     /**

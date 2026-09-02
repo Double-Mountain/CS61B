@@ -36,14 +36,14 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static File gitlet_dir = join(CWD, ".gitlet");
+    private static File gitletDir = join(CWD, ".gitlet");
 
     /**
      * Return the branches file object
      * @return a file object
      */
     private static File branches() {
-        return join(gitlet_dir, "branches");
+        return join(gitletDir, "branches");
     }
 
     /**
@@ -51,7 +51,7 @@ public class Repository {
      * @return a file object
      */
     private static File commits() {
-        return commitsFrom(gitlet_dir); 
+        return commitsFrom(gitletDir); 
     }
     
     /**
@@ -59,7 +59,7 @@ public class Repository {
      * @return a file object
      */
     private static File blobs() {
-        return blobsFrom(gitlet_dir);
+        return blobsFrom(gitletDir);
     }
 
     /**
@@ -67,7 +67,7 @@ public class Repository {
      * @return a file object
      */
     private static File staging() {
-        return join(gitlet_dir, "staging");
+        return join(gitletDir, "staging");
     }
 
     /**
@@ -75,7 +75,7 @@ public class Repository {
      * @return a file object
      */
     private static File head() {
-        return join(gitlet_dir, "head");
+        return join(gitletDir, "head");
     }
 
     /**
@@ -83,7 +83,7 @@ public class Repository {
      * @return a file object
      */
     private static File removal() {
-        return join(gitlet_dir, "removal");
+        return join(gitletDir, "removal");
     }
 
     /**
@@ -91,7 +91,7 @@ public class Repository {
      * @return a file object
      */
     private static File addition() {
-        return join(gitlet_dir, "addition");
+        return join(gitletDir, "addition");
     }
 
     /**
@@ -99,7 +99,7 @@ public class Repository {
      * @return a file object
      */
     private static File remotes() {
-        return join(gitlet_dir, "remotes");
+        return join(gitletDir, "remotes");
     }
 
     /* fill in the rest of this class. */
@@ -109,19 +109,19 @@ public class Repository {
      * @param directory the given directory file object
      */
     private static void changeDirectory(File directory) {
-        gitlet_dir = directory;
+        gitletDir = directory;
     }
 
     /**
      * Initiate the gitlet repository
      */
     public static void init() {
-        if (gitlet_dir.exists()) {
+        if (gitletDir.exists()) {
             System.err.println(
                 "A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
         }
-        gitlet_dir.mkdir();
+        gitletDir.mkdir();
         commits().mkdir();
         blobs().mkdir();
         staging().mkdir();
@@ -336,7 +336,9 @@ public class Repository {
      */
     private static boolean addToAddition(String name) {
         File file = join(staging(), name);
-        if (!file.exists()) return false;
+        if (!file.exists()) {
+            return false;
+        }
         HashMap<String, String> addition = loadAddition();
         addition.put(name, sha1(readContents(file)));
         saveAddition(addition);
@@ -512,12 +514,12 @@ public class Repository {
         System.out.println("===");
         System.out.println("commit " + name);
         if (commit.getSecondParent() != null) {
-            System.out.println("Merge: " + commit.getParent().substring(0, 7) + " " + 
-            commit.getSecondParent().substring(0, 7));
+            System.out.println("Merge: " + commit.getParent().substring(0, 7) + " "
+                + commit.getSecondParent().substring(0, 7));
         }
         Date time = commit.getTime();
         System.out.println(String.format(Locale.US, "Date: %ta %tb %td %tH:%tM:%tS %tY %tz", 
-        time, time, time, time, time, time, time, time));
+            time, time, time, time, time, time, time, time));
         System.out.println(commit.getMessage());
         System.out.println("");
     }
@@ -779,8 +781,8 @@ public class Repository {
         Set<String> blobs = commit.getTree().keySet();
         for (String file : blobs) {
             if (!tracked.contains(file) && join(CWD, file).exists()) {
-                System.err.println(
-                "There is an untracked file in the way; delete it, or add and commit it first.");
+                System.err.println("There is an untracked file in the way; "
+                    + "delete it, or add and commit it first.");
                 System.exit(0);
             }
         }
@@ -902,9 +904,9 @@ public class Repository {
                     }
                 }
             } else if (!changes.get(file).equals(currentTree.get(file))) {
-                if (!currentTree.containsKey(file) && !ancestorTree.containsKey(file) ||
-                currentTree.containsKey(file) && 
-                currentTree.get(file).equals(ancestorTree.get(file))) {
+                if (!currentTree.containsKey(file) && !ancestorTree.containsKey(file)
+                    || currentTree.containsKey(file)
+                        && currentTree.get(file).equals(ancestorTree.get(file))) {
                     writeContents(join(CWD, file), readContents(loadBlob(changes.get(file))));
                     stage(file);
                 } else {
@@ -966,8 +968,7 @@ public class Repository {
      * @param commit the given commit object
      * @param file the file name
      */
-    private static void writeConflict(Commit current, Commit commit, String file)
-    {
+    private static void writeConflict(Commit current, Commit commit, String file) {
         byte[] currentContent = new byte[0];
         byte[] commitContent = new byte[0];
         String currentBlob = current.getBlob(file);
@@ -979,7 +980,7 @@ public class Repository {
             commitContent = readContents(loadBlob(commitBlob));
         }
         writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n",
-        commitContent, ">>>>>>>\n");
+            commitContent, ">>>>>>>\n");
     }
 
     /**
@@ -1040,13 +1041,13 @@ public class Repository {
         changeToRemote(remote);
         String commit = getBranch(branch);
         backToLocal();
-        if (commit != null && (loadCommit(commit) == null ||
-        !getSplitPoint(commit).equals(commit))) {
+        if (commit != null && (loadCommit(commit) == null
+            || !getSplitPoint(commit).equals(commit))) {
             System.err.println("Please pull down remote changes before pushing.");
             System.exit(0);
         }
         String latest = getBranch(getHead());
-        transport(gitlet_dir, getRemote(remote), latest);
+        transport(gitletDir, getRemote(remote), latest);
         changeToRemote(remote);
         setBranch(branch, latest);
         moveHead(branch);
@@ -1107,7 +1108,7 @@ public class Repository {
             for (String blob : current.getTree().values()) {
                 if (!join(blobsFrom(dst), blob).exists()) {
                     writeContents(join(blobsFrom(dst), blob),
-                    readContents(join(blobsFrom(src), blob)));
+                        readContents(join(blobsFrom(src), blob)));
                 }
             }
         }
@@ -1144,7 +1145,7 @@ public class Repository {
         }
         String commit = getBranch(branch);
         backToLocal();
-        transport(getRemote(remote), gitlet_dir, commit);
+        transport(getRemote(remote), gitletDir, commit);
         setBranch(remote + "/" + branch, commit);
     }
 
@@ -1156,5 +1157,13 @@ public class Repository {
     public static void pull(String remote, String branch) {
         fetch(remote, branch);
         merge(remote + "/" + branch);
+    }
+
+    /**
+     * Return the .gitlet director as a file object
+     * @return a file object
+     */
+    public static File getGitletDir() {
+        return gitletDir;
     }
 }
