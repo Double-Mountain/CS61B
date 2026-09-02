@@ -36,34 +36,101 @@ public class Repository {
     /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File BRANCHES = join(GITLET_DIR, "branches");
-    public static final File COMMITS = join(GITLET_DIR, "commits");
-    public static final File BLOBS = join(GITLET_DIR, "blobs");
-    public static final File STAGING = join(GITLET_DIR, "staging");
-    public static final File HEAD = join(GITLET_DIR, "head");
-    public static final File REMOVAL = join(GITLET_DIR, "removal");
-    public static final File ADDITION = join(GITLET_DIR, "addition");
+    public static File gitlet_dir = join(CWD, ".gitlet");
+
+    /**
+     * Return the branches file object
+     * @return a file object
+     */
+    private static File branches() {
+        return join(gitlet_dir, "branches");
+    }
+
+    /**
+     * Return the commits file object
+     * @return a file object
+     */
+    private static File commits() {
+        return join(gitlet_dir, "commits");
+    }
+    
+    /**
+     * Return the blobs file object
+     * @return a file object
+     */
+    private static File blobs() {
+        return join(gitlet_dir, "blobs");
+    }
+
+    /**
+     * Return the staging file object
+     * @return a file object
+     */
+    private static File staging() {
+        return join(gitlet_dir, "staging");
+    }
+
+    /**
+     * Return the head file object
+     * @return a file object
+     */
+    private static File head() {
+        return join(gitlet_dir, "head");
+    }
+
+    /**
+     * Return the removal file object
+     * @return a file object
+     */
+    private static File removal() {
+        return join(gitlet_dir, "removal");
+    }
+
+    /**
+     * Return the addition file object
+     * @return a file object
+     */
+    private static File addition() {
+        return join(gitlet_dir, "addition");
+    }
+
+    /**
+     * Return the remotes file object
+     * @return a file object
+     */
+    private static File remotes() {
+        return join(gitlet_dir, "remotes");
+    }
 
     /* fill in the rest of this class. */
+
+    /**
+     * Change the gitlet directory to the given directory
+     * @param directory the given directory file object
+     */
+    private static void changeDirectory(File directory) {
+        gitlet_dir = directory;
+    }
 
     /**
      * Initiate the gitlet repository
      */
     public static void init() {
-        if (GITLET_DIR.exists()) {
-            System.err.println("A Gitlet version-control system already exists in the current directory.");
+        if (gitlet_dir.exists()) {
+            System.err.println(
+                "A Gitlet version-control system already exists in the current directory.");
             System.exit(0);
         }
-        GITLET_DIR.mkdir();
-        COMMITS.mkdir();
-        BLOBS.mkdir();
-        STAGING.mkdir();
-        BRANCHES.mkdir();
+        gitlet_dir.mkdir();
+        commits().mkdir();
+        blobs().mkdir();
+        staging().mkdir();
+        branches().mkdir();
+        remotes().mkdir();
         HashSet<String> removal = new HashSet<>();
-        writeObject(REMOVAL, removal);
+        writeObject(removal(), removal);
         HashMap<String, String> addition = new HashMap<>();
-        writeObject(ADDITION, addition);
+        writeObject(addition(), addition);
         String first = saveCommit(new Commit("initial commit", new Date(0), null));
         setBranch("master", first);
         moveHead("master");
@@ -76,7 +143,7 @@ public class Repository {
      */
     private static String saveCommit(Commit commit) {
         String name = sha1(serialize(commit));
-        File file = join(COMMITS, name);
+        File file = join(commits(), name);
         writeObject(file, commit);
         return name;
     }
@@ -84,28 +151,32 @@ public class Repository {
     /**
      * Load the commit as an object
      * @param name the SHA-1 of the commit, or a unique abbreviation of it
-     * @return an commit object, null if none or multiple commits can be found under the given name or the name itself is null
+     * @return an commit object, 
+        null if none or multiple commits can be found under the given name 
+        or the name itself is null
      */
     private static Commit loadCommit(String name) {
         name = fullCommitName(name);
         if (name == null) {
             return null;
         }
-        File file = join(COMMITS, name);
+        File file = join(commits(), name);
         return readObject(file, Commit.class);
     }
 
     /**
      * Get a full and existed commit name out of a given name
      * @param name the given commit name
-     * @return the full commit name, null if none or multiple commits can be found under the given name or the name itself is null
+     * @return the full commit name, 
+        null if none or multiple commits can be found under the given name 
+        or the name itself is null
      */
     private static String fullCommitName(String name) {
         if (name == null) {
             return null;
         }
         if (name.length() == UID_LENGTH) {
-            if (!join(COMMITS, name).exists()) {
+            if (!join(commits(), name).exists()) {
                 name = null;
             }
         } else {
@@ -128,7 +199,8 @@ public class Repository {
     }
 
     /**
-     * Load the commit that a branch points to as an object, null if the given branch does not exist
+     * Load the commit that a branch points to as an object, 
+     * null if the given branch does not exist
      * @param branch the branch name
      * @return an commit object
      */
@@ -149,7 +221,7 @@ public class Repository {
      * @param branch the branch that the head pointer move to
      */
     private static void moveHead(String branch) {
-        writeContents(HEAD, branch);
+        writeContents(head(), branch);
     }
 
     /**
@@ -157,7 +229,7 @@ public class Repository {
      * @return the branch name
      */
     private static String getHead() {
-        return readContentsAsString(HEAD);
+        return readContentsAsString(head());
     }
 
     /**
@@ -166,7 +238,7 @@ public class Repository {
      * @param commit the SHA-1 of the commit
      */
     private static void setBranch(String branch, String commit) {
-        writeContents(join(BRANCHES, branch), commit);
+        writeContents(join(branches(), branch), commit);
     }
 
     /**
@@ -175,7 +247,7 @@ public class Repository {
      * @return the SHA-1 of the commit
      */
     private static String getBranch(String branch) {
-        File file = join(BRANCHES, branch);
+        File file = join(branches(), branch);
         if (!file.exists()) {
             return null;
         }
@@ -211,7 +283,7 @@ public class Repository {
         if (!file.exists()) {
             return false;
         }
-        writeContents(join(STAGING, name), readContents(file));
+        writeContents(join(staging(), name), readContents(file));
         addToAddition(name);
         return true;
     }
@@ -222,7 +294,7 @@ public class Repository {
      */
     private static boolean unstage(String name) {
         deleteFromAddition(name);
-        return join(STAGING, name).delete();
+        return join(staging(), name).delete();
     }
 
     /**
@@ -230,7 +302,7 @@ public class Repository {
      * @return a hash map object
      */
     private static HashMap<String, String> loadAddition() {
-        return readObject(ADDITION, HashMap.class);
+        return readObject(addition(), HashMap.class);
     }
 
     /**
@@ -238,7 +310,7 @@ public class Repository {
      * @param addition a hash map object
      */
     private static void saveAddition(HashMap<String, String> addition) {
-        writeObject(ADDITION, addition);
+        writeObject(addition(), addition);
     }
 
     /**
@@ -247,7 +319,7 @@ public class Repository {
      * @return whether the file exists in the staging area
      */
     private static boolean addToAddition(String name) {
-        File file = join(STAGING, name);
+        File file = join(staging(), name);
         if (!file.exists()) return false;
         HashMap<String, String> addition = loadAddition();
         addition.put(name, sha1(readContents(file)));
@@ -281,7 +353,7 @@ public class Repository {
      * @return a file object
      */
     private static File loadStagedFile(String name) {
-        return join(STAGING, name);
+        return join(staging(), name);
     }
 
     /**
@@ -296,7 +368,7 @@ public class Repository {
         }
         byte[] contents = readContents(loadStagedFile(name));
         String blob = sha1(contents);
-        writeContents(join(BLOBS, blob), contents);
+        writeContents(join(blobs(), blob), contents);
         return blob;
     }
 
@@ -370,7 +442,7 @@ public class Repository {
      * @return the removal as a hash set
      */
     private static HashSet<String> loadRemoval() {
-        return readObject(REMOVAL, HashSet.class);
+        return readObject(removal(), HashSet.class);
     }
 
     /**
@@ -378,7 +450,7 @@ public class Repository {
      * @param removal the hash set object to be saved as the removal
      */
     private static void saveRemoval(HashSet<String> removal) {
-        writeObject(REMOVAL, removal);
+        writeObject(removal(), removal);
     }
 
     /**
@@ -424,10 +496,12 @@ public class Repository {
         System.out.println("===");
         System.out.println("commit " + name);
         if (commit.getSecondParent() != null) {
-            System.out.println("Merge: " + commit.getParent().substring(0, 7) + " " + commit.getSecondParent().substring(0, 7));
+            System.out.println("Merge: " + commit.getParent().substring(0, 7) + " " + 
+            commit.getSecondParent().substring(0, 7));
         }
         Date time = commit.getTime();
-        System.out.println(String.format(Locale.US, "Date: %ta %tb %td %tH:%tM:%tS %tY %tz", time, time, time, time, time, time, time, time));
+        System.out.println(String.format(Locale.US, "Date: %ta %tb %td %tH:%tM:%tS %tY %tz", 
+        time, time, time, time, time, time, time, time));
         System.out.println(commit.getMessage());
         System.out.println("");
     }
@@ -447,7 +521,7 @@ public class Repository {
      * @return the SHA-1s of all commits
      */
     private static List<String> getCommitList() {
-        return plainFilenamesWithoutOrder(COMMITS);
+        return plainFilenamesWithoutOrder(commits());
     }
 
     /**
@@ -522,7 +596,7 @@ public class Repository {
      * @return a list of strings
      */
     private static List<String> getSortedBranchList() {
-        return plainFilenamesIn(BRANCHES);
+        return plainFilenamesIn(branches());
     }
 
     /**
@@ -631,7 +705,7 @@ public class Repository {
      * @return a file object
      */
     private static File loadBlob(String name) {
-        return join(BLOBS, name);
+        return join(blobs(), name);
     }
 
     /**
@@ -687,7 +761,8 @@ public class Repository {
         Set<String> blobs = commit.getTree().keySet();
         for (String file : blobs) {
             if (!tracked.contains(file) && join(CWD, file).exists()) {
-                System.err.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.err.println(
+                "There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
             }
         }
@@ -724,7 +799,7 @@ public class Repository {
             System.err.println("Cannot remove the current branch.");
             System.exit(0);
         }
-        if (!join(BRANCHES, branch).delete()) {
+        if (!join(branches(), branch).delete()) {
             System.err.println("A branch with that name does not exist.");
             System.exit(0);
         }
@@ -808,7 +883,8 @@ public class Repository {
                 }
             } else if (!changes.get(file).equals(currentTree.get(file))) {
                 if (!currentTree.containsKey(file) && !ancestorTree.containsKey(file) ||
-                currentTree.containsKey(file) && currentTree.get(file).equals(ancestorTree.get(file))) {
+                currentTree.containsKey(file) && 
+                currentTree.get(file).equals(ancestorTree.get(file))) {
                     writeContents(join(CWD, file), readContents(loadBlob(changes.get(file))));
                     stage(file);
                 } else {
@@ -882,6 +958,7 @@ public class Repository {
         if (commitBlob != null) {
             commitContent = readContents(loadBlob(commitBlob));
         }
-        writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n", commitContent, ">>>>>>>\n");
+        writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n", 
+        commitContent, ">>>>>>>\n");
     }
 }
