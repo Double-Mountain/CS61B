@@ -51,7 +51,7 @@ public class Repository {
      * @return a file object
      */
     private static File commits() {
-        return join(gitlet_dir, "commits");
+        return commitsFrom(gitlet_dir); 
     }
     
     /**
@@ -59,7 +59,7 @@ public class Repository {
      * @return a file object
      */
     private static File blobs() {
-        return join(gitlet_dir, "blobs");
+        return blobsFrom(gitlet_dir);
     }
 
     /**
@@ -958,7 +958,7 @@ public class Repository {
         if (commitBlob != null) {
             commitContent = readContents(loadBlob(commitBlob));
         }
-        writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n", 
+        writeContents(join(CWD, file), "<<<<<<< HEAD\n", currentContent, "=======\n",
         commitContent, ">>>>>>>\n");
     }
 
@@ -987,11 +987,110 @@ public class Repository {
         return readObject(remote, File.class);
     }
 
+    /**
+     * Remove a remote directory
+     * @param name the name of the remote directory
+     */
     public static void rmRemote(String name) {
         if (loadRemote(name) == null) {
             System.err.println("A remote with that name does not exist.");
             System.exit(0);
         }
         join(remotes(), name).delete();
+    }
+
+    public static void push(String remote, String branch) {
+        checkRemoteExists(remote);
+        changeToRemote(remote);
+        String commit = getBranch(branch);
+        backToLocal();
+        if (commit != null && (loadCommit(commit) == null ||
+        !getSplitPoint(commit).equals(commit))) {
+            System.err.println("Please pull down remote changes before pushing.");
+            System.exit(0);
+        }
+        String latest = getBranch(getHead());
+        transport(gitlet_dir, loadRemote(remote), latest);
+        changeToRemote(remote);
+        setBranch(branch, latest);
+        moveHead(branch);
+    }
+
+    /**
+     * Change back to the local .gitlet directory
+     */
+    private static void backToLocal() {
+        changeDirectory(join(CWD, ".gitlet"));
+    }
+
+    /**
+     * Change to the remote directory with the given name
+     * @param name the name of the remote directory
+     */
+    private static void changeToRemote(String name) {
+        backToLocal();
+        changeDirectory(loadRemote(name));
+    }
+
+    /**
+     * Exit if the given remote directory does not exist
+     * @param name the name of the remote directory
+     */
+    private static void checkRemoteExists(String name) {
+        File remote = loadRemote(name);
+        if (remote == null || !remote.exists()) {
+            System.err.println("Remote directory not found.");
+            System.exit(0);
+        }
+    }
+
+    /**
+     * Transport the full history of a commit from src to dst
+     * @param src the source directory
+     * @param dst the destination directory
+     * @param commit the SHA-1 of the commit
+     */
+    private static void transport(File src, File dst, String commit) {
+        Queue<String> queue = new ArrayDeque<>();
+        if (join(commitsFrom(dst), commit).exists()) {
+            return;
+        }
+        queue.offer(commit);
+        while (!queue.isEmpty()) {
+            String name = queue.poll();
+            Commit current = readObject(join(commitsFrom(src), name), Commit.class);
+            String parent = current.getParent();
+            if (parent != null && !join(commitsFrom(dst), parent).exists()) {
+                queue.offer(parent);
+            }
+            parent = current.getSecondParent();
+            if (parent != null && !join(commitsFrom(dst), parent).exists()) {
+                queue.offer(parent);
+            }
+            writeObject(join(commitsFrom(dst), name), current);
+            for (String blob : current.getTree().values()) {
+                if (!join(blobsFrom(dst), blob).exists()) {
+                    writeContents(join(blobsFrom(dst), blob),
+                    readContents(join(blobsFrom(src), blob)));
+                }
+            }
+        }
+    }
+
+    /**
+     * Return the commits file object from the given directory
+     * @param directory the file object of the given directory
+     */
+    private static File commitsFrom(File directory) {
+        return join(directory, "commits");
+    }
+
+    /**
+     * Return the blobs file object from the given directory
+     * @param directory the blobs object of the given directory
+     * @return
+     */
+    private static File blobsFrom(File directory) {
+        return join(directory, "blobs");
     }
 }

@@ -200,6 +200,18 @@ public class Main {
                 }
                 Repository.rmRemote(args[1]);
                 break;
+            case "push":
+                // handle the 'push [remote name] [remote branch name]' command
+                if (args.length != 3) {
+                    System.err.println(OPERANDS);
+                    System.exit(0);
+                }
+                if (!Repository.gitlet_dir.exists()) {
+                    System.err.println(NO_DIRECTORY);
+                    System.exit(0);
+                }
+                Repository.push(args[1], args[2]);
+                break;
             default:
                 System.err.println("No command with that name exists.");
         }
