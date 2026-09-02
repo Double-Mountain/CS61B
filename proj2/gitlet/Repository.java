@@ -1147,4 +1147,14 @@ public class Repository {
         transport(getRemote(remote), gitlet_dir, commit);
         setBranch(remote + "/" + branch, commit);
     }
+
+    /**
+     * Fetch a remote branch and merge it to the current branch
+     * @param remote the given remote
+     * @param branch the given branch
+     */
+    public static void pull(String remote, String branch) {
+        fetch(remote, branch);
+        merge(remote + "/" + branch);
+    }
 }
