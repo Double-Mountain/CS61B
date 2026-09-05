@@ -24,6 +24,15 @@ public class Engine {
     }
 
     /**
+     * Renders a generated world to the screen. This should only be called when
+     * running interactively (e.g. from Main), never by the autograder.
+     */
+    public void renderWorld(TETile[][] world) {
+        ter.initialize(WIDTH, HEIGHT);
+        ter.renderFrame(world);
+    }
+
+    /**
      * Method used for autograding and testing your code. The input string will be a series
      * of characters (for example, "n123sswwdasdassadwas", "n123sss:q", "lwww". The engine should
      * behave exactly as if the user typed these characters into the engine using
@@ -52,6 +61,7 @@ public class Engine {
         //
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
+        rooms = 0;
         TETile[][] finalWorldFrame = new TETile[WIDTH][HEIGHT];
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
@@ -77,8 +87,6 @@ public class Engine {
         int xL = uniform(random, 1, 6);
         int yL = uniform(random, 1, 6);
         new Room(xLB, yLB, xL, yL, finalWorldFrame);
-        ter.initialize(WIDTH, HEIGHT);
-        ter.renderFrame(finalWorldFrame);
         return finalWorldFrame;
     }
 
