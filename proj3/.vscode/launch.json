@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Main (-s NxxxxS 种子模式)",
+            "request": "launch",
+            "mainClass": "byow.Core.Main",
+            "args": ["-s", "N${input:seed}S"]
+        },
+        {
+            "type": "java",
+            "name": "Main (键盘模式)",
+            "request": "launch",
+            "mainClass": "byow.Core.Main"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "seed",
+            "type": "promptString",
+            "description": "输入种子整数（xxx，例如 1234）",
+            "default": "1234"
+        }
+    ]
+}
