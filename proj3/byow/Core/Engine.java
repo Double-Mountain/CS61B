@@ -13,7 +13,7 @@ public class Engine {
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
     private static int rooms = 0;
-    public static final int TEMPERATURE = 10;
+    public static final double TEMPERATURE = 10;
     private static Random random;
 
     /**
@@ -96,8 +96,11 @@ public class Engine {
             if (xL <= 0 || yL <= 0) {
                 return;
             }
-            createRoom(xLB, yLB, xL, yL, world);
-            if (TEMPERATURE / rooms > uniform(random)) {
+            if (!createRoom(xLB, yLB, xL, yL, world)) {
+                return;
+            }
+            int rs = rooms;
+            if (TEMPERATURE / rs > uniform(random)) {
                 int startPoint = uniform(random, xLB, xLB + xL);
                 if (uniform(random) < 0.5) {
                     new Room(startPoint, yLB + yL, uniform(random, 1, 6), uniform(random, 1, 6), world);
@@ -106,7 +109,7 @@ public class Engine {
                     new Room(newStartPoint, yLB + yL, startPoint - newStartPoint + 1, uniform(random, 1, 6), world);
                 }
             }
-            if (TEMPERATURE / rooms > uniform(random)) {
+            if (TEMPERATURE / rs > uniform(random)) {
                 int startPoint = uniform(random, xLB, xLB + xL);
                 int newL = uniform(random, 1, 6);
                 if (uniform(random) < 0.5) {
@@ -116,7 +119,7 @@ public class Engine {
                     new Room(newStartPoint, yLB - newL, startPoint - newStartPoint + 1, newL, world);
                 }
             }
-            if (TEMPERATURE / rooms > uniform(random)) {
+            if (TEMPERATURE / rs > uniform(random)) {
                 int startPoint = uniform(random, yLB, yLB + yL);
                 if (uniform(random) < 0.5) {
                     new Room(xLB + xL, startPoint, uniform(random, 1, 6), uniform(random, 1, 6), world);
@@ -125,8 +128,8 @@ public class Engine {
                     new Room(xLB + xL, newStartPoint, uniform(random, 1, 6), startPoint - newStartPoint + 1, world);
                 }
             }
-            if (100 / rooms > uniform(random)) {
-                int startPoint = uniform(random, yLB, yLB + xL);
+            if (TEMPERATURE / rs > uniform(random)) {
+                int startPoint = uniform(random, yLB, yLB + yL);
                 int newL = uniform(random, 1, 6);
                 if (uniform(random) < 0.5) {
                     new Room(xLB - newL, startPoint, newL, uniform(random, 1, 6), world);
@@ -138,16 +141,19 @@ public class Engine {
         }
     }
 
-    private static void createRoom(int xLB, int yLB, int xL, int yL, TETile[][] world) {
+    private static boolean createRoom(int xLB, int yLB, int xL, int yL, TETile[][] world) {
         if (xL <= 0 || yL <= 0) {
-            return;
+            return false;
         }
-        boolean flag = false;
         for (int i = 0; i < xL; i++) {
             for (int j = 0; j < yL; j++) {
-                if (world[xLB + i][yLB + j] != Tileset.FLOOR) {
-                    flag = true;
+                if (world[xLB + i][yLB + j] == Tileset.FLOOR) {
+                    return false;
                 }
+            }
+        }
+        for (int i = 0; i < xL; i++) {
+            for (int j = 0; j < yL; j++) {
                 world[xLB + i][yLB + j] = Tileset.FLOOR;
             }
             if (world[xLB + i][yLB - 1] == Tileset.NOTHING) {
@@ -165,9 +171,8 @@ public class Engine {
                 world[xLB + xL][yLB + j] = Tileset.WALL;
             }
         }
-        if (flag) {
-            rooms++;
-        }
+        rooms++;
+        return true;
     }
 
 }
