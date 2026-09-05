@@ -34,6 +34,22 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
+                    <!--
+                      sourceDirectory is the project root, so Maven's default
+                      resource folders (src/main/resources, src/test/resources)
+                      are nested inside it. JDT rejects nested source folders
+                      unless the parent source folder excludes src/. m2e turns
+                      the compiler plugin's excludes/testExcludes into
+                      source-folder exclusion patterns, which fixes the Java
+                      language server import. This project has no src/ folder
+                      to compile, so excluding it is harmless.
+                    -->
+                    <excludes>
+                        <exclude>src/**</exclude>
+                    </excludes>
+                    <testExcludes>
+                        <exclude>src/**</exclude>
+                    </testExcludes>
                     <compilerArgs>
                         <arg>-J-XX:+ShowCodeDetailsInExceptionMessages</arg>
                     </compilerArgs>
