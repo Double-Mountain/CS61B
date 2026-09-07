@@ -18,7 +18,18 @@
             "mainClass": "byow.Core.Main",
             "args": [
                 "-s",
-                "N${input:seed}S"
+                "N${input:seed}S:Q"
+            ]
+        },
+        {
+            "type": "java",
+            "name": "Main (-s L:Q 读取后退出模式)",
+            "request": "launch",
+            "mainClass": "byow.Core.Main",
+            "projectName": "proj3",
+            "args": [
+                "-s",
+                "L:Q"
             ]
         },
         {

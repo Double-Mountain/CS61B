@@ -6,6 +6,11 @@ import byow.TileEngine.Tileset;
 import java.util.Random;
 import static byow.Core.RandomUtils.*;
 import static java.lang.Math.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -15,12 +20,21 @@ public class Engine {
     private static int rooms = 0;
     public static final double TEMPERATURE = 10;
     private static Random random;
+    public static final String SAVE = "save.txt";
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+    }
+
+    
+    /** Return the concatentation of FIRST and OTHERS into a File designator,   
+     *  analogous to the {@link java.nio.file.Paths.#get(String, String[])}     
+     *  method. */                                                              
+    private static File join(String first, String... others) {                          
+        return Paths.get(first, others).toFile();                               
     }
 
     /**
@@ -79,14 +93,50 @@ public class Engine {
                         break;
                     }
                 }
+                random = new Random(Long.parseLong(input.substring(start + 1, end)));
+                int xLB = uniform(random, 1, WIDTH - 1);
+                int yLB = uniform(random, 1, HEIGHT - 1);
+                int xL = uniform(random, 1, 6);
+                int yL = uniform(random, 1, 6);
+                new Room(xLB, yLB, xL, yL, finalWorldFrame);
+            } else if (input.charAt(i) == ':') {
+                i++;
+                if (i < input.length() && (input.charAt(i) == 'q' || input.charAt(i) == 'Q')) {
+                    PrintWriter out = null;
+                    try {
+                        File save = new File(SAVE);
+                        save.createNewFile();
+                        out = new PrintWriter(SAVE);
+                    } catch (Exception e) {}
+                    for (int x = 0; x < WIDTH; x++) {
+                        String line = new String();
+                        for (int y = 0; y < HEIGHT; y++) {
+                            line += finalWorldFrame[x][y].character();
+                        }
+                        out.println(line);
+                    }
+                    out.close();
+                }
+            } else if (input.charAt(i) == 'l' || input.charAt(i) == 'L') {
+                List<String> lines = null;
+                File save = new File(SAVE);
+                if (!save.exists()) {
+                    System.exit(0);
+                }
+                try {
+                    lines = Files.readAllLines(Paths.get(SAVE));
+                } catch (Exception e) {}
+                for (int x = 0; x < WIDTH; x++) {
+                    String line = lines.get(x);
+                    for (int y = 0; y < HEIGHT; y++) {
+                        switch (line.charAt(y)) {
+                            case '#': finalWorldFrame[x][y] = Tileset.WALL; break;
+                            case '·': finalWorldFrame[x][y] = Tileset.FLOOR;
+                        }
+                    }
+                }
             }
         }
-        random = new Random(Long.parseLong(input.substring(start + 1, end)));
-        int xLB = uniform(random, 1, WIDTH - 1);
-        int yLB = uniform(random, 1, HEIGHT - 1);
-        int xL = uniform(random, 1, 6);
-        int yL = uniform(random, 1, 6);
-        new Room(xLB, yLB, xL, yL, finalWorldFrame);
         return finalWorldFrame;
     }
 
