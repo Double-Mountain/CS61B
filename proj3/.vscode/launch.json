@@ -3,10 +3,23 @@
     "configurations": [
         {
             "type": "java",
+            "name": "MemoryGame",
+            "request": "launch",
+            "mainClass": "byow.lab13.MemoryGame",
+            "projectName": "proj3",
+            "args": [
+                "${input:seed}"
+            ]
+        },
+        {
+            "type": "java",
             "name": "Main (-s NxxxxS 种子模式)",
             "request": "launch",
             "mainClass": "byow.Core.Main",
-            "args": ["-s", "N${input:seed}S"]
+            "args": [
+                "-s",
+                "N${input:seed}S"
+            ]
         },
         {
             "type": "java",
