@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
 import java.util.List;
+import java.io.IOException;
 
 public class Engine {
     TERenderer ter = new TERenderer();
@@ -68,7 +69,7 @@ public class Engine {
      * @return the 2D TETile[][] representing the state of the world
      */
     public TETile[][] interactWithInputString(String input) {
-        // TODO: Fill out this method so that it run the engine using the input
+        // Fill out this method so that it run the engine using the input
         // passed in as an argument, and return a 2D tile representation of the
         // world that would have been drawn if the same inputs had been given
         // to interactWithKeyboard().
@@ -107,7 +108,7 @@ public class Engine {
                         File save = new File(SAVE);
                         save.createNewFile();
                         out = new PrintWriter(SAVE);
-                    } catch (Exception e) {}
+                    } catch (IOException e) { /* Ignore IOException. */ }
                     for (int x = 0; x < WIDTH; x++) {
                         String line = new String();
                         for (int y = 0; y < HEIGHT; y++) {
@@ -125,13 +126,14 @@ public class Engine {
                 }
                 try {
                     lines = Files.readAllLines(Paths.get(SAVE));
-                } catch (Exception e) {}
+                } catch (IOException e) { /* Ignore IOException. */ }
                 for (int x = 0; x < WIDTH; x++) {
                     String line = lines.get(x);
                     for (int y = 0; y < HEIGHT; y++) {
                         switch (line.charAt(y)) {
                             case '#': finalWorldFrame[x][y] = Tileset.WALL; break;
-                            case '·': finalWorldFrame[x][y] = Tileset.FLOOR;
+                            case '·': finalWorldFrame[x][y] = Tileset.FLOOR; break;
+                            default: break;
                         }
                     }
                 }
@@ -146,7 +148,7 @@ public class Engine {
         int xLength;
         int yLength;
 
-        public Room(int xLB, int yLB, int xL, int yL, TETile[][] world) {
+        Room(int xLB, int yLB, int xL, int yL, TETile[][] world) {
             xLeftBottom = xLB = max(1, xLB);
             yLeftBottom = yLB = max(1, yLB);
             xLength = xL = min(xL, WIDTH - xLB - 1);
@@ -161,10 +163,12 @@ public class Engine {
             if (TEMPERATURE / rs > uniform(random)) {
                 int startPoint = uniform(random, xLB, xLB + xL);
                 if (uniform(random) < 0.5) {
-                    new Room(startPoint, yLB + yL, uniform(random, 1, 6), uniform(random, 1, 6), world);
+                    new Room(startPoint, yLB + yL, uniform(random, 1, 6),
+                        uniform(random, 1, 6), world);
                 } else {
                     int newStartPoint = startPoint - uniform(random, 5);
-                    new Room(newStartPoint, yLB + yL, startPoint - newStartPoint + 1, uniform(random, 1, 6), world);
+                    new Room(newStartPoint, yLB + yL, startPoint - newStartPoint + 1,
+                        uniform(random, 1, 6), world);
                 }
             }
             if (TEMPERATURE / rs > uniform(random)) {
@@ -174,16 +178,19 @@ public class Engine {
                     new Room(startPoint, yLB - newL, uniform(random, 1, 6), newL, world);
                 } else {
                     int newStartPoint = startPoint - uniform(random, 5);
-                    new Room(newStartPoint, yLB - newL, startPoint - newStartPoint + 1, newL, world);
+                    new Room(newStartPoint, yLB - newL, startPoint - newStartPoint + 1,
+                        newL, world);
                 }
             }
             if (TEMPERATURE / rs > uniform(random)) {
                 int startPoint = uniform(random, yLB, yLB + yL);
                 if (uniform(random) < 0.5) {
-                    new Room(xLB + xL, startPoint, uniform(random, 1, 6), uniform(random, 1, 6), world);
+                    new Room(xLB + xL, startPoint, uniform(random, 1, 6),
+                        uniform(random, 1, 6), world);
                 } else {
                     int newStartPoint = startPoint - uniform(random, 5);
-                    new Room(xLB + xL, newStartPoint, uniform(random, 1, 6), startPoint - newStartPoint + 1, world);
+                    new Room(xLB + xL, newStartPoint, uniform(random, 1, 6),
+                        startPoint - newStartPoint + 1, world);
                 }
             }
             if (TEMPERATURE / rs > uniform(random)) {
@@ -193,7 +200,8 @@ public class Engine {
                     new Room(xLB - newL, startPoint, newL, uniform(random, 1, 6), world);
                 } else {
                     int newStartPoint = startPoint - uniform(random, 5);
-                    new Room(xLB - newL, newStartPoint, newL, startPoint - newStartPoint + 1, world);
+                    new Room(xLB - newL, newStartPoint, newL,
+                        startPoint - newStartPoint + 1, world);
                 }
             }
         }
